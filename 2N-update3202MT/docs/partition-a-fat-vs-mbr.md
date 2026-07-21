@@ -16,7 +16,7 @@ MBR heuristic can never fire on it. On mount failure the firmware **auto-formats
 a superfloppy**. That is why the real pen shows up as `sda` (no partition table).
 
 All addresses at unified base `0x08009000`. Decomp:
-`out/decomp_named/0x08039a68.c` (fs_partition_scan), `0x0803b078.c` (BPB mount parse),
+`out/decomp/0x08039a68.c` (fs_partition_scan), `0x0803b078.c` (BPB mount parse),
 `0x0803b310.c` (Fat_Format), `0x08039d00.c` (format wrapper), `0x08039ddc.c` (volume
 ctor), `0x0803a484.c` (fs_storage_mount_init). Branches verified against the raw ARM
 disassembly of `data/PROG.bin` (offsets cited below). Everything here is **Proven**

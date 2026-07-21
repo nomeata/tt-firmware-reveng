@@ -15,7 +15,7 @@ jobs:
 
       - name: Firmware-leak guard (no firmware or derived data may be tracked)
         run: |
-          leak=$(git ls-files | grep -Ei '\.(upd|bin|img)$|^fw/[^/]+/(data|out|ghidra)/' || true)
+          leak=$(git ls-files | grep -Ei '\.(upd|bin|img)$|^[^/]+/(data|out|ghidra)/' || true)
           if [ -n "$leak" ]; then
             echo "::error::firmware or derived artifacts are tracked:"; echo "$leak"; exit 1
           fi
@@ -26,7 +26,7 @@ jobs:
           python3 - <<'PY'
           import json, glob, sys
           ok = True
-          for p in sorted(glob.glob("fw/*/firmware.json")):
+          for p in sorted(glob.glob("*/firmware.json")):
               m = json.load(open(p))
               upd = m.get("upd", {})
               for k in ("filename", "urls", "size", "sha256"):
@@ -61,14 +61,14 @@ jobs:
         run: nix develop --command tools/fetch_firmware.py 2N-update3202MT
 
       - name: Ghidra base (import + auto-analysis)
-        run: nix develop --command bash -c 'FW=fw/2N-update3202MT tools/make_base.sh'
+        run: nix develop --command bash -c 'FW=2N-update3202MT tools/make_base.sh'
 
       - name: Regenerate the named decompilation
-        run: nix develop --command bash -c 'FW=fw/2N-update3202MT tools/regen.sh'
+        run: nix develop --command bash -c 'FW=2N-update3202MT tools/regen.sh'
 
       - name: Assert the naming was applied
         run: |
-          out=fw/2N-update3202MT/out/decomp_named
+          out=2N-update3202MT/out/decomp
           n=$(ls "$out"/*.c | wc -l)
           echo "decompiled functions: $n"
           [ "$n" -gt 2000 ] || { echo "::error::too few functions ($n)"; exit 1; }
@@ -78,4 +78,4 @@ jobs:
           echo "ok: naming applied"
 
       - name: Rebuild the GME coverage inventory
-        run: nix develop --command bash -c 'FW=fw/2N-update3202MT tools/gme_inventory.py'
+        run: nix develop --command bash -c 'FW=2N-update3202MT tools/gme_inventory.py'

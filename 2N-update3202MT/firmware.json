@@ -1,0 +1,13 @@
+{
+  "variant": "2N-update3202MT",
+  "description": "tiptoi 2nd-gen pen, ZC3202N with Micron (MT) NAND. German build N0038MT / 20131009. This is the flagship variant: fully analysed, and the one that matches the maintainer's real pen.",
+  "loader_base": "0x08009000",
+  "upd": {
+    "filename": "update3202MT.upd",
+    "urls": [
+      "https://cdn.ravensburger.de/db/firmware/update3202MT.upd"
+    ],
+    "size": 11303276,
+    "sha256": "8e37af0a3d3c126189447964784fd84ccf0356cb7425b5ab478e86b3352741f9"
+  }
+}

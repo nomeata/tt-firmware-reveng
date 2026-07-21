@@ -10,8 +10,5 @@
     ],
     "size": 6396452,
     "sha256": "03c12f41b6bc9ab78ee206c2bdfdbe45eb9ad7c3ab8337e7a8661555aae4a4a6"
-  },
-  "blobs": {
-    "_note": "First-gen container layout. PROG is a 1 MiB image; offsets not yet re-verified in this repo."
   }
 }

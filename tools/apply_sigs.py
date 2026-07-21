@@ -9,9 +9,9 @@ from ghidra.app.cmd.function import ApplyFunctionSignatureCmd
 from ghidra.program.model.symbol import SourceType
 
 # Per-firmware inputs come from the environment (set by regen.sh via tools/fwenv.sh);
-# defaults target the flagship fw/2N-update3202MT so the script also works when run standalone.
+# defaults target the flagship 2N-update3202MT so the script also works when run standalone.
 # Derived from REPO_ROOT (exported by fwenv.sh), not __file__ (undefined in Ghidra's Jython).
-_DEF = os.path.join(os.environ.get("REPO_ROOT", ""), "fw", "2N-update3202MT")
+_DEF = os.path.join(os.environ.get("REPO_ROOT", ""), "2N-update3202MT")
 NAMES = os.environ.get("NAMES_CSV", _DEF + "/input/names.csv")
 TYPES = os.environ.get("TYPES_H",   _DEF + "/input/ghidra_types.h")
 fm = currentProgram.getFunctionManager()

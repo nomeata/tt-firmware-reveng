@@ -3,7 +3,7 @@
 > **Purpose.** The public tip-toi-reveng (tttool) reverse engineering was done almost entirely
 > **black-box** — staring at `.gme` hex, sniffing wires, poking pens — without the decompiled pen
 > firmware. This project has the firmware **decompiled and named**
-> (`out/decomp_named/`, unified base **0x08009000**; resident nandboot at 0x08000000). This doc
+> (`out/decomp/`, unified base **0x08009000**; resident nandboot at 0x08000000). This doc
 > walks the tip-toi-reveng **wiki** and **`GME-Format.md`** and, for every item the community marked
 > *unknown / unclear / TODO / "not sure" / "probably" / "?"*, records whether our decomp resolves it,
 > with the firmware address/evidence and a **Proven / Inferred / Still-open** verdict.

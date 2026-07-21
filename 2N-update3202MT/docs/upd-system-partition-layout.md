@@ -13,14 +13,14 @@ factory content is in the `.upd` and trivially extractable; and no — none of i
 strictly required for boot/discovery to work (see §5).
 
 Conventions: `.upd` = the `update3202MT.upd` container (11,303,276 = 0xAC796C bytes). MT PROG
-addresses = unified base 0x08009000, decomp in `out/decomp_named/`. Claims tagged
+addresses = unified base 0x08009000, decomp in `out/decomp/`. Claims tagged
 **Proven** (bytes/decomp cited) or **Inferred**.
 
 ---
 
 ## 1. Complete `.upd` container map (all sections, not just the 4 extracted)
 
-Header layout (0xA4 bytes, checksummed; matches `fw/2N-Update3202/data/Anyka_UPD_2015-03-01.xml`).
+Header layout (0xA4 bytes, checksummed; matches `2N-Update3202/data/Anyka_UPD_2015-03-01.xml`).
 All values below read from the file (**Proven**):
 
 | hdr off | field | value | points to |
@@ -100,7 +100,7 @@ File formats (**Proven**, bytes + consumer decomp):
 
 The pen updates **itself**: the PC (tiptoi Manager) merely drops the `.upd` onto the
 USB-exposed `B:` drive. Full chain in MT PROG (**Proven**, all decomp in
-`out/decomp_named/`):
+`out/decomp/`):
 
 1. **Detect** — `fw_update_cleanup@0x08052768`: scans `B:\` for files whose name matches
    a language entry's update-file name from `B:/LanguageInfoMT.txt` (default constant

@@ -1,6 +1,6 @@
 # GME timer / counter / random commands — firmware handlers
 
-Static RE of the 2N-MT (`fw/2N-update3202MT`, PROG base 0x08009000) GME-script interpreter,
+Static RE of the 2N-MT (`2N-update3202MT`, PROG base 0x08009000) GME-script interpreter,
 focused on the **timer**, **counter (register-arithmetic)** and **random** commands.
 Cross-checked against tttool (`tip-toi-reveng/src/{GMEParser,Types,Constants}.hs`, `GME-Format.md`).
 Evidence tags: **[Proven]** = read directly from decomp/disasm/literals; **[Inferred]** = strongly

@@ -13,10 +13,10 @@ every structure-building step is a self-contained function with inputs we have
 whole flow and gives the exact on-flash formats it creates (with the magic spare tags).
 
 Conventions: producer addresses = load base 0x08000000
-(`fw/2N-Update3202/data/producer.bin`, decomp in
-`fw/2N-Update3202/out/ghidra_artifacts/producer_decomp/`);
+(`2N-Update3202/data/producer.bin`, decomp in
+`2N-Update3202/out/ghidra_artifacts/producer_decomp/`);
 MT addresses = unified base 0x08009000
-(`fw/2N-update3202MT/out/decomp_named/`). Claims tagged **Proven** (decomp/bytes
+(`2N-update3202MT/out/decomp/`). Claims tagged **Proven** (decomp/bytes
 cited) or **Inferred**.
 
 ---

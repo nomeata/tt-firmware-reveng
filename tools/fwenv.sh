@@ -1,30 +1,30 @@
 # tools/fwenv.sh -- single source of truth for per-firmware paths.
 #
 # Pick which firmware to operate on with the FW env var (a path under the repo root,
-# default fw/2N-update3202MT, the flagship variant). Everything else is DERIVED from it,
+# default 2N-update3202MT, the flagship variant). Everything else is DERIVED from it,
 # so the whole pipeline is retargeted by one variable:
 #
-#   FW=fw/2N-update3202MT tools/fetch_firmware.py   # obtain + verify + unpack the firmware
-#   FW=fw/2N-update3202MT tools/make_base.sh        # one-time Ghidra auto-analysis base
-#   FW=fw/2N-update3202MT tools/regen.sh            # apply names/types -> out/decomp_named/
+#   FW=2N-update3202MT tools/fetch_firmware.py   # obtain + verify + unpack the firmware
+#   FW=2N-update3202MT tools/make_base.sh        # one-time Ghidra auto-analysis base
+#   FW=2N-update3202MT tools/regen.sh            # apply names/types -> out/decomp/
 #
 # Shell scripts:  source "$(dirname "$0")/fwenv.sh"
 # The Ghidra (Jython) scripts read the SAME values from the environment; regen.sh exports
 # NAMES_CSV / TYPES_H / NANDBOOT_BIN / DECOMP_OUT / LOADER_BASE below.
 #
 # Layout per firmware ($FW_DIR):
-#   firmware.json       manifest: .upd URL + checksums + blob offsets + loader_base (committed)
+#   firmware.json       manifest: .upd URL + checksum + loader_base (committed)
 #   data/               git-ignored: the .upd and the blobs extracted from it by
 #                       tools/fetch_firmware.py (PROG.bin, nandboot.bin, ...)
 #   input/names.csv     addr,name  (our RE database, committed)
 #   input/ghidra_types.h  structs + signatures + docstrings + enums  (committed)
-#   out/decomp_named/   git-ignored: generated named decompilation (regen.sh output)
+#   out/decomp/   git-ignored: generated named decompilation (regen.sh output)
 #   ghidra/base|work    git-ignored: Ghidra projects (make_base.sh / regen.sh)
 
 FWENV_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 REPO_ROOT="$(cd "$FWENV_DIR/.." && pwd)"
 
-: "${FW:=fw/2N-update3202MT}"
+: "${FW:=2N-update3202MT}"
 case "$FW" in
   /*) FW_DIR="$FW" ;;
   *)  FW_DIR="$REPO_ROOT/$FW" ;;
@@ -35,7 +35,7 @@ PROG_NAME="$(basename "$PROG_BIN")"          # ghidra program name == imported f
 NANDBOOT_BIN="$FW_DIR/data/nandboot.bin"
 NAMES_CSV="$FW_DIR/input/names.csv"
 TYPES_H="$FW_DIR/input/ghidra_types.h"
-DECOMP_OUT="$FW_DIR/out/decomp_named"
+DECOMP_OUT="$FW_DIR/out/decomp"
 GHIDRA_BASE="$FW_DIR/ghidra/base"
 GHIDRA_WORK="$FW_DIR/ghidra/work"
 

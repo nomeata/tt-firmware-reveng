@@ -133,7 +133,7 @@ Exactly two static call sites of `udisk_gme_discovery`, **both with list-id 1** 
 
 No other list-id is ever built in this firmware: `udisk_scan_iter_init` has one caller
 (`udisk_gme_discovery`), which has only the two callers above (grep of the full
-`decomp_named` corpus). [Proven]
+`decomp` corpus). [Proven]
 
 ### 2.2 What the scan does [P `0x080af6dc.c`, `0x080afa80.c`]
 

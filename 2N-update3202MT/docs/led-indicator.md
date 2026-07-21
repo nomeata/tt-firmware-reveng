@@ -1,6 +1,6 @@
 # LED indicator — is the "blink on OID tap" in firmware? (2N MT)
 
-Static decomp analysis (`out/decomp_named/`, base **0x08009000**) + `data/nandboot.bin` disasm
+Static decomp analysis (`out/decomp/`, base **0x08009000**) + `data/nandboot.bin` disasm
 (loads flat @0x08000000). Evidence tags: **[Proven]** = read from disasm/decomp; **[Inferred]** =
 deduced. Companions: `soc-core-registers.md` (GPIO map), `oid-sensor-read-protocol.md` (OID-detect
 path), `pmu-power-management.md` (power/battery), `hardware-external-refs.md` (external LED/parts).
@@ -63,7 +63,7 @@ So there is no "turn an output on at decode, off shortly after" pulse in the fir
 ## 2. Q2 — Which GPIO is the LED? None. [Proven]
 
 Complete set of pins the firmware **ever writes** (via `hal_gpio_write` 0x08007734, across all of
-`decomp_named/`):
+`decomp/`):
 
 | pin | role (from soc-core-registers.md / pmu doc) |
 |---|---|

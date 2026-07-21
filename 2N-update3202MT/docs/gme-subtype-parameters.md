@@ -1,7 +1,7 @@
 # GME per-game-type parameter words — the community's unnamed slots, resolved
 
 > READ-ONLY reverse-engineering pass over the 2N (MT) decomp
-> (`out/decomp_named/`, base 0x08009000). Resolves the game-type-specific
+> (`out/decomp/`, base 0x08009000). Resolves the game-type-specific
 > config fields that tip-toi-reveng documents as unknown placeholders:
 > Subgames `u0`–`u9`, Games `c`/`i`/`q`/`x`/`w`/`v`, Special-symbols `c`–`g`.
 > Flagged "still-open but reversible" in `community-open-questions-resolved.md`

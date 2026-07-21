@@ -2,7 +2,7 @@
 """Analysis helpers for the tiptoi ZC3202N firmware (Update3202_dl.upd PROG section).
 
 PROG.bin is a FLAT load: file offset F maps to runtime address BASE + F, header included.
-  BASE (fw/2N-update3202MT) = 0x08009000  == runtime == pen RAM dumps == emulator (ttrun_gme.py)
+  BASE (2N-update3202MT) = 0x08009000  == runtime == pen RAM dumps == emulator (ttrun_gme.py)
                               == Ghidra image base (LOADER_BASE) after the 2026-07-02 re-base.
   PROG spans  BASE .. BASE+0x380000  (0x08009000 .. 0x08389000 for MT).
   Everything BELOW BASE (0x07ff.. / nandboot scratch) is HAL, NOT part of PROG.
@@ -10,13 +10,13 @@ Older notes/tools used BASE=0x08000000 (Ghidra 0x9000 below runtime); add 0x9000
 BASE is per-FW: read from LOADER_BASE (set by tools/fwenv.sh), else legacy 0x08000000.
 """
 import sys, struct, re
-# firmware image resolved via the FW env var (see tools/fwenv.sh); default fw/2N-update3202MT.
+# firmware image resolved via the FW env var (see tools/fwenv.sh); default 2N-update3202MT.
 import os as _os
 from capstone import *
 from capstone.arm import ARM_OP_MEM, ARM_REG_PC
 
 _REPO = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-_FW = _os.environ.get("FW", "fw/2N-update3202MT")
+_FW = _os.environ.get("FW", "2N-update3202MT")
 # Per-FW image base: honor LOADER_BASE from the environment (fwenv.sh); fall back to the
 # verified base for MT, else the legacy 0x08000000.
 _DEFAULT_BASE = 0x08009000 if _FW.rstrip("/").endswith("2N-update3202MT") else 0x08000000

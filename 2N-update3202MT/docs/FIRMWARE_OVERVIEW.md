@@ -9,7 +9,7 @@ Single reference tying together what we know about the pen firmware (the **MT** 
 
 ## 1. Which firmware the pen runs
 The pen runs **update3202MT** (proven via the live sysapi-pointer match: 101/106 in MT vs 35 in
-Update3202). Everything pen-related uses `fw/2N-update3202MT/`. `fw/2N-Update3202/` is the older 2012
+Update3202). Everything pen-related uses `2N-update3202MT/`. `2N-Update3202/` is the older 2012
 sibling used for cross-reference.
 
 ## 2. Boot chain (maskROM → SPL → PROG)
@@ -31,7 +31,7 @@ sibling used for cross-reference.
 
 ## 3. Runtime memory model — the key structural fact
 **PROG loads FLAT at base 0x08009000** — a single uniform image, no relocation of any kind. Ghidra
-images `fw/2N-update3202MT` at exactly this base, so Ghidra addr == runtime addr for all code, and
+images `2N-update3202MT` at exactly this base, so Ghidra addr == runtime addr for all code, and
 data/bss globals sit at their own fixed absolute addresses. Runtime map:
 **0x08000000-0x08009000** = nandboot low-RAM (resident HAL leaves + statechart CB + early globals);
 **0x08009000+** = PROG flat; **0x07ffxxxx** = mapped HAL/BIOS. Confirmed dynamically (clean boot,

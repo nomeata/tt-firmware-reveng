@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ONE-TIME cached base: $FW/data/PROG.bin + ARM:LE:32:v5t auto-analysis, NO manual edits.
 # Pristine input to the pure regen (regen.sh copies it and applies names/types/sigs from source).
-# Retarget with FW=... (see tools/fwenv.sh). Default FW=fw/2N-Update3202.
+# Retarget with FW=... (see tools/fwenv.sh). Default FW=2N-Update3202.
 set -uo pipefail
 source "$(dirname "$0")/fwenv.sh"
 echo "make_base: FW=$FW  PROG=$PROG_BIN  program-name=$PROG_NAME  LOADER_BASE=$LOADER_BASE"

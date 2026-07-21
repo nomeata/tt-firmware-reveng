@@ -109,7 +109,7 @@ The table *contents* are firmware data and are not reproduced here; extract them
 your verified `PROG.bin`:
 
 ```python
-data = open("fw/2N-update3202MT/data/PROG.bin", "rb").read()
+data = open("2N-update3202MT/data/PROG.bin", "rb").read()
 BASE = 0x08009000
 tableA = data[0x080b0078 - BASE : 0x080b0078 - BASE + 256]
 tableB = data[0x080b0178 - BASE : 0x080b0178 - BASE + 256]

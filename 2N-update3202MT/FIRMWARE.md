@@ -25,8 +25,10 @@ at `data/update3202MT.upd` and the script will verify rather than re-download.
 
 ## `.upd` container layout
 
-The vendor `.upd` is an `ANYKA106` container. The blobs and their byte ranges (authored,
-machine-readably, in [`firmware.json`](firmware.json)):
+The vendor `.upd` is an `ANYKA106` container that describes its own contents: the header
+gives the producer / NANDboot / PROG offsets and sizes, and a small table of records names
+the images (`PROG`, `codepage`). `tools/fetch_firmware.py` reads these from the container —
+nothing here is hard-coded in the manifest. The blobs and their byte ranges for this build:
 
 | file          | .upd offset | size (bytes)          | role |
 |---------------|-------------|-----------------------|------|
@@ -48,7 +50,8 @@ Verified anchors: `open` at file `0x4e20` → runtime `0x0800de20`; `play_media`
 
 ## Checksums
 
-Verified by `tools/fetch_firmware.py`; the authoritative copies live in `firmware.json`.
+The `.upd` SHA-256 is pinned in `firmware.json` and verified by `tools/fetch_firmware.py`;
+because the blobs are a deterministic slice of the verified `.upd`, their checksums follow.
 
 ```
 8e37af0a3d3c126189447964784fd84ccf0356cb7425b5ab478e86b3352741f9  update3202MT.upd

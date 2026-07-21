@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Measure RE progress per firmware: % of functions named + docstring/struct counts.
-# Reads the regenerated decompilation (out/decomp_named) and input/ghidra_types.h.
-# Run 'FW=<variant> tools/regen.sh' first so out/decomp_named exists.
+# Reads the regenerated decompilation (out/decomp) and input/ghidra_types.h.
+# Run 'FW=<variant> tools/regen.sh' first so out/decomp exists.
 cd "$(dirname "$0")/.."      # repo root
 for fwdir in fw/*/; do
   nm="$(basename "$fwdir")"
   docs="$fwdir/input/ghidra_types.h"
-  d="$fwdir/out/decomp_named"
+  d="$fwdir/out/decomp"
   [ -d "$d" ] || continue
   total=$(ls "$d"/*.c 2>/dev/null | wc -l)
   [ "$total" -gt 0 ] || continue

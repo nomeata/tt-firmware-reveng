@@ -8,13 +8,13 @@
 # =============================================================================
 
 # extracted firmware + everything sliced from it (fetch_firmware.py output)
-fw/*/data/
+/*/data/
 
 # generated analysis output (regen.sh / gme_inventory.py)
-fw/*/out/
+/*/out/
 
 # Ghidra projects (contain the imported firmware image)
-fw/*/ghidra/
+/*/ghidra/
 
 # stray firmware images anywhere
 *.upd

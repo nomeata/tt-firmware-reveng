@@ -8,7 +8,7 @@ These documents describe **how the firmware works** — the GME file format and 
 interpreter, the hardware interfaces, the storage stack, and the boot/runtime state
 machine. They are our own commentary, addresses, struct layouts and short illustrative
 snippets; they contain **no vendor firmware and nothing mechanically derived from it**
-(see [CONTRIBUTING](../../../CONTRIBUTING.md)). Findings that were confirmed by *running*
+(see [CONTRIBUTING](../../CONTRIBUTING.md)). Findings that were confirmed by *running*
 the firmware were checked under [`tt-emu`](https://github.com/nomeata/tt-emu), which lives
 in its own repository.
 

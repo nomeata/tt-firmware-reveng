@@ -1,18 +1,18 @@
 # Ghidra headless: (1) map the recovered bootrom @0x07ff8000 and name its routines,
-# (2) apply names.csv to firmware functions, (3) re-decompile everything to decomp_named/.
+# (2) apply names.csv to firmware functions, (3) re-decompile everything to decomp/.
 import os, jarray
 from ghidra.program.model.symbol import SourceType
 from ghidra.app.decompiler import DecompInterface
 from ghidra.util.task import ConsoleTaskMonitor
 
 # Per-firmware paths come from the environment (set by regen.sh via tools/fwenv.sh);
-# the defaults below target the flagship fw/2N-update3202MT so the script also works when
+# the defaults below target the flagship 2N-update3202MT so the script also works when
 # run standalone. (Derived from REPO_ROOT, which fwenv.sh exports, with a relative fallback;
 # not from __file__, which Ghidra's Jython runner does not define.)
-_DEF=os.path.join(os.environ.get("REPO_ROOT", ""), "fw", "2N-update3202MT")
+_DEF=os.path.join(os.environ.get("REPO_ROOT", ""), "2N-update3202MT")
 NAMES=os.environ.get("NAMES_CSV",   _DEF+"/input/names.csv")
 HDR  =os.environ.get("TYPES_H",     _DEF+"/input/ghidra_types.h")
-DEC  =os.environ.get("DECOMP_OUT",  _DEF+"/out/decomp_named")
+DEC  =os.environ.get("DECOMP_OUT",  _DEF+"/out/decomp")
 try: os.makedirs(DEC)
 except: pass
 
@@ -24,7 +24,7 @@ def A(x): return af.getAddress(x)
 
 # The hardcoded PROG-space labels below (DATA_NAMES, statechart globals) were written against
 # the legacy Ghidra image base 0x08000000. When a FW is imported at a different LOADER_BASE
-# (e.g. fw/2N-update3202MT at 0x08009000 == runtime), shift PROG-space addresses by the delta
+# (e.g. 2N-update3202MT at 0x08009000 == runtime), shift PROG-space addresses by the delta
 # so they still land on the same file offset. Bootrom (0x07ff...) addresses are HAL-mapped and
 # are NOT shifted. names.csv / ghidra_types.h addresses are ALREADY authored at the FW's base,
 # so they are consumed as-is (no shift).
@@ -374,7 +374,7 @@ if _os.path.exists(HDR):
                 print("  @local 0x%08x %s: commit FAIL (%s)"%(fa,key,_sys.exc_info()[1]))
     print("committed locals:",_nloc)
 
-# ---- 3. re-decompile everything to decomp_named/ ----
+# ---- 3. re-decompile everything to decomp/ ----
 # Ghidra emits the setComment() plate comment into the C only inconsistently (and line-wrapped),
 # so we always prepend our own single-line docstring and strip any wrapped copy Ghidra emitted
 # (keeping /* WARNING ... */ blocks intact).

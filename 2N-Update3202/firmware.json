@@ -10,8 +10,5 @@
     ],
     "size": 11293036,
     "sha256": "db3decd8eb108f8e27ff6b4d3acb554415bc3c8fa7ff65150edd9d06a456f2f2"
-  },
-  "blobs": {
-    "_note": "Blob offsets for this .upd are not yet re-verified in this repo. See 2N-update3202MT for the verified extraction; this container's layout is similar but the PROG build differs."
   }
 }

@@ -8,7 +8,7 @@ regenerated on demand.
 ## The golden rule
 
 **Never commit the firmware or anything derived from it.** The `.gitignore` blocks
-`fw/*/data/`, `fw/*/out/`, `fw/*/ghidra/`, and stray `*.upd`/`*.bin`/`*.img`. Before every
+`<variant>/data/`, `<variant>/out/`, `<variant>/ghidra/`, and stray `*.upd`/`*.bin`/`*.img`. Before every
 commit, sanity-check that `git status` shows no firmware images, decompiled C, or extracted
 binary dumps. If you write a new doc, keep it to commentary, addresses, struct layouts and
 short illustrative snippets — not wholesale pasted decompiler output or extracted string/byte
@@ -28,19 +28,21 @@ input/ghidra_types.h ┼──────────────────�
                      │                                │    2. ghidra_rename.py (names, structs,
                      │                                │       docstrings, typed globals, decompile)
                      ▼                                ▼
-              (edited by hand)              out/decomp_named/*.c   (git-ignored output)
+              (edited by hand)              out/decomp/*.c   (git-ignored output)
 ```
 
-* **`tools/fetch_firmware.py`** — reads `fw/<variant>/firmware.json`, downloads the `.upd`
-  if absent, verifies size + SHA-256 (catching truncated downloads), and slices the blobs
-  out at the manifest offsets, verifying each. All output is git-ignored `data/`.
+* **`tools/fetch_firmware.py`** — reads `<variant>/firmware.json`, downloads the `.upd`
+  if absent, verifies size + SHA-256 (catching truncated downloads), and unpacks the blobs.
+  The `.upd` is an `ANYKA106` container that describes its own contents, so the blob
+  offsets/sizes/names are read from the container itself — not hard-coded in the manifest;
+  the verified `.upd` checksum covers every blob sliced from it. All output is git-ignored `data/`.
 * **`tools/fwenv.sh`** — the single source of truth for per-variant paths, retargeted by the
-  `FW` environment variable (default `fw/2N-update3202MT`). It reads `loader_base` from the
+  `FW` environment variable (default `2N-update3202MT`). It reads `loader_base` from the
   manifest and exports the paths the Ghidra scripts consume.
 * **`tools/make_base.sh`** — one-time: imports `PROG.bin` at `loader_base` and runs Ghidra
   auto-analysis into a cached pristine `ghidra/base`. No manual edits.
 * **`tools/regen.sh`** — the pure regen: copies the base into a throwaway `ghidra/work`,
-  applies signatures then names/types/docstrings, and decompiles into `out/decomp_named/`.
+  applies signatures then names/types/docstrings, and decompiles into `out/decomp/`.
   It is **atomic and fail-loud**: output is swapped into place only on verified completion.
 * **`tools/gme_inventory.py`** — rebuilds the GME call-graph coverage inventory
   (`docs/gme-callgraph-inventory.{md,tsv}`) from the regenerated decompilation + the types
@@ -62,16 +64,17 @@ variable.
   * directives: `@slot` (type a literal-pool constant), `@local <fn> <sel> name [type]`
     (rename/retype a local or parameter), `@noreturn <addr>`.
 
-After editing, `FW=<variant> tools/regen.sh` and read `out/decomp_named/` to confirm the
+After editing, `FW=<variant> tools/regen.sh` and read `out/decomp/` to confirm the
 result reads cleanly — readability of the regenerated C is the acceptance criterion.
 
 ## Adding a firmware variant
 
-1. Create `fw/<variant>/` with `input/` (start with empty `names.csv` / `ghidra_types.h`).
-2. Write `fw/<variant>/firmware.json`: the `.upd` URL(s), its size + SHA-256, the
-   `loader_base`, and the blob offset/size/SHA-256 table. Verify the offsets by extracting
-   from a real `.upd` before committing the checksums.
-3. `tools/fetch_firmware.py <variant>` and `FW=fw/<variant> tools/make_base.sh`, then start
+1. Create `<variant>/` at the repo root with `input/` (start with empty `names.csv` /
+   `ghidra_types.h`).
+2. Write `<variant>/firmware.json`: the `.upd` URL(s), its size + SHA-256, and the
+   `loader_base`. The blob offsets are read from the `ANYKA106` container by
+   `fetch_firmware.py`, so they don't go in the manifest.
+3. `tools/fetch_firmware.py <variant>` and `FW=<variant> tools/make_base.sh`, then start
    naming.
 
 ## The emulator lives elsewhere

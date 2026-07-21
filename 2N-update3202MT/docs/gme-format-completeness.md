@@ -4,7 +4,7 @@
 > and header table the MT GME interpreter handles, with a **documented / undocumented** verdict
 > per item and an overall "can we run arbitrary GMEs" assessment. All addresses = unified runtime
 > base **0x08009000** (`data/PROG.bin` flat load). Evidence: **[Proven]** = read from
-> `out/decomp_named/` / PROG.bin bytes; **[Inferred]** = inferred.
+> `out/decomp/` / PROG.bin bytes; **[Inferred]** = inferred.
 > Companions: `gme-timer-counter-random.md`, `book-discovery-and-load.md`, `media-pipeline.md`,
 > `statechart-full-map.md`. External cross-ref: tttool `tip-toi-reveng/GME-Format.md`.
 

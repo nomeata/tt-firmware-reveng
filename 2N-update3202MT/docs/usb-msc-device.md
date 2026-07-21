@@ -1,6 +1,6 @@
 # USB mass-storage device stack — how the pen presents drive B: to a PC
 
-Static decomp analysis (`out/decomp_named/`, unified base **0x08009000**; literal-pool constants
+Static decomp analysis (`out/decomp/`, unified base **0x08009000**; literal-pool constants
 resolved from `data/PROG.bin`). Evidence tags: **[Proven]** = read directly from the cited
 decomp/literal pools; **[Inferred]** = deduced (reason given); **[Open]** = unresolved.
 
@@ -461,5 +461,5 @@ unplug/cleanup, with the stale buffer fields never zeroed. [Inferred from the fi
 | state-5 tick order: update-list → blocking `usb_power_switch()` → post-unplug B: scan/format/re-register | Proven | 0x08051090.c (scan calls after the loop call) |
 | phase 7 (vendor "ANYKA") exit → `flash_program_region()` + deliberate infinite loop (production reflash park) | Proven | 0x0803d1d4.c tail (`unaff_r4 == 7` branch) |
 | periodic medium flush every 0x2BC0 loop iterations ("flush") | Proven | 0x0803d1d4.c (`uVar9 == 0x2bc0`) |
-| `usb_wait_host_sof` polls 0x040000cc bit6 first, then INTRUSB SOF / POWER HSMode; no decomp caller | Proven body / caller Open | 0x08041ce4.c; grep over decomp_named |
+| `usb_wait_host_sof` polls 0x040000cc bit6 first, then INTRUSB SOF / POWER HSMode; no decomp caller | Proven body / caller Open | 0x08041ce4.c; grep over decomp |
 | live dump: msc_ctx buffer fields = usb_dev_open(0x0814C000, 0x8000) bit-exact; sub-objects NULLed (post-teardown); partB ptr 0x08145C00 | Proven bytes / history Inferred | live-pen RAM dump window 0x081D8000 (§5.1) |

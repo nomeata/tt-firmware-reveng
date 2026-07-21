@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Assemble names.csv (addr,name) for the Ghidra rename pass, from verified
-findings + string evidence. Emits $FW/input/names.csv (default fw/2N-Update3202)."""
+findings + string evidence. Emits $FW/input/names.csv (default 2N-Update3202)."""
 import os, xref, nav
 from collections import defaultdict
 
 _REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_FW = os.environ.get("FW", "fw/2N-Update3202")
+_FW = os.environ.get("FW", "2N-update3202MT")
 _NAMES_OUT = os.environ.get("NAMES_CSV",
     (_FW if os.path.isabs(_FW) else os.path.join(_REPO, _FW)) + "/input/names.csv")
 
