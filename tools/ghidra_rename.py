@@ -125,9 +125,16 @@ def ensure_func(addr, name):
     except: pass
     return True
 
+# The BOOTROM name map, the DATA_NAMES globals, and the statechart-pointer typing below are
+# specific to the 2N-update3202MT flagship (its bootrom HAL, its runtime addresses). Other
+# variants drive everything from their own input/ files, so these blocks are gated on a flag
+# fwenv.sh sets only for the flagship. Everything else in this script is variant-agnostic.
+_APPLY_2N_HAL = os.environ.get("PIPELINE_2N_HAL", "") == "1"
+
 nb=0
-for addr,nm in BOOTROM.items():
-    if ensure_func(addr,nm): nb+=1
+if _APPLY_2N_HAL:
+    for addr,nm in BOOTROM.items():
+        if ensure_func(addr,nm): nb+=1
 print("named bootrom funcs:",nb)
 
 # ---- 1b. name key data globals (literal-pool pointer slots used by the GME engine) ----
@@ -144,10 +151,11 @@ DATA_NAMES={
  0x0802b994:"pp_gb_b994", 0x08007a18:"g_gb",
  0x0811f38c:"g_media_xor_key", 0x08007c74:"g_decrypt_enabled",
 }
-for addr,nm in DATA_NAMES.items():
-    try: st.createLabel(A(P(addr)), nm, SourceType.USER_DEFINED)
-    except: pass
-print("named data globals:", len(DATA_NAMES), "(loader base 0x%08x, shift 0x%x)"%(LOADER_BASE,_SHIFT))
+if _APPLY_2N_HAL:
+    for addr,nm in DATA_NAMES.items():
+        try: st.createLabel(A(P(addr)), nm, SourceType.USER_DEFINED)
+        except: pass
+    print("named data globals:", len(DATA_NAMES), "(loader base 0x%08x, shift 0x%x)"%(LOADER_BASE,_SHIFT))
 
 # ---- 2. apply names.csv ----
 nf=0
@@ -308,11 +316,11 @@ if _os.path.exists(HDR):
         except:
             print("  type-global SKIP 0x%08x (%s)"%(addr, _sys.exc_info()[1]))
     _sc=dtm.getDataType("/StateChart")
-    if _sc is not None:
+    if _APPLY_2N_HAL and _sc is not None:
         _scp=PointerDataType(_sc)
         _typ(P(0x080e87d4), _scp, "statechart ptr")    # DAT_080e87d4 -> StateChart*
         _typ(P(0x08031a00), _scp, "statechart ptr2")   # DAT_08031a00 -> StateChart*
-    print("typed globals: StateChart=%s"%(_sc is not None))
+    print("typed globals: StateChart=%s"%(_sc is not None and _APPLY_2N_HAL))
 
     # ---- (e) @noreturn directive: mark halt/panic paths no-return. A wrong (implicit-return)
     # prototype makes every caller's decompilation grow a bogus fall-through; setNoReturn fixes the

@@ -47,9 +47,18 @@ if [ -z "${LOADER_BASE:-}" ]; then
   LOADER_BASE="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('loader_base','0x08000000'))" "$FW_DIR/firmware.json" 2>/dev/null || echo 0x08000000)"
 fi
 
+# PIPELINE_2N_HAL: the flagship 2N-update3202MT carries a block of hardcoded bootrom-HAL /
+# data-global / statechart names inside ghidra_rename.py. Only apply them for that variant;
+# every other variant is driven purely by its own input/ files. (This is the one bit of
+# variant-specific data still baked into the shared script.)
+case "$FW" in
+  */2N-update3202MT|2N-update3202MT) : "${PIPELINE_2N_HAL:=1}" ;;
+  *)                                 : "${PIPELINE_2N_HAL:=0}" ;;
+esac
+
 # Friendly nudge: the pipeline needs the extracted firmware, which is git-ignored.
 if [ ! -f "$PROG_BIN" ]; then
   echo "note: $PROG_BIN not found -- run 'FW=$FW tools/fetch_firmware.py' first" >&2
 fi
 
-export FW FW_DIR REPO_ROOT PROG_BIN PROG_NAME NANDBOOT_BIN NAMES_CSV TYPES_H DECOMP_OUT GHIDRA_BASE GHIDRA_WORK LOADER_BASE
+export FW FW_DIR REPO_ROOT PROG_BIN PROG_NAME NANDBOOT_BIN NAMES_CSV TYPES_H DECOMP_OUT GHIDRA_BASE GHIDRA_WORK LOADER_BASE PIPELINE_2N_HAL

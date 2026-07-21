@@ -35,6 +35,10 @@ This repository contains **our reverse-engineering work**, not the vendor firmwa
   in Ghidra and regenerates a fully-named decompilation.
 * **documentation** (`<variant>/docs/`) of the findings — the GME format, the script
   opcodes, the game types, the hardware interfaces, the storage stack, and boot.
+* **cross-firmware records** — [`correspondences.tsv`](correspondences.tsv) maps equivalent
+  functions across the variants (so a name recovered from one firmware's retained symbols can
+  be carried to another), and [`firmware-differences.md`](firmware-differences.md) logs
+  noteworthy differences in what the *pen* does between generations.
 
 It deliberately contains **no vendor firmware and nothing mechanically derived from it**
 (no firmware images, no decompiled C, no extracted string/byte dumps). The firmware is
@@ -76,7 +80,7 @@ Each analyzed firmware is a self-contained directory at the repository root, sha
 |---------|-----|--------|
 | **`2N-update3202MT`** | 2nd gen, ZC3202N (Micron NAND), build 20131009 | **flagship** — fully analyzed; matches a real pen |
 | `2N-Update3202` | 2nd gen, ZC3202N, earlier build 20120419 | work in progress |
-| `ZC3201` | 1st gen (no recording) | work in progress — good cross-reference (retained symbol strings) |
+| `ZC3201` | 1st gen (no recording) | work in progress — regenerable; ~220 named. Its retained vendor symbol strings make it the authoritative-name source that feeds the others |
 | `3L-Update3203L` | 3rd gen, ZC3203L (audio player) | stub |
 
 Each `<variant>/` holds:

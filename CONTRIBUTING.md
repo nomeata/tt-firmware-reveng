@@ -77,6 +77,24 @@ result reads cleanly — readability of the regenerated C is the acceptance crit
 3. `tools/fetch_firmware.py <variant>` and `FW=<variant> tools/make_base.sh`, then start
    naming.
 
+The pipeline is variant-agnostic: each variant is described entirely by its own `input/`
+files. The one exception is a block of hardcoded bootrom-HAL / data-global / statechart names
+for the `2N-update3202MT` flagship inside `ghidra_rename.py`, gated behind the
+`PIPELINE_2N_HAL` flag that `fwenv.sh` sets only for that variant.
+
+## Cross-firmware records
+
+Because some builds (notably `ZC3201`) were compiled with their vendor symbol/assert strings
+intact while others (the 2N-MT flagship) were stripped, a name recovered from one firmware is
+often the authoritative name for the equivalent function in another. Two records at the repo
+root capture that:
+
+* **`correspondences.tsv`** — one row per function that appears in more than one variant:
+  `function` (canonical name) · its address in each variant (or `-`) · `evidence` (how the
+  equivalence was established). Use it to carry authoritative names between variants.
+* **`firmware-differences.md`** — evidence-backed notes on how the *pen's behaviour* differs
+  between generations (features present in one but not another, gating differences, etc.).
+
 ## The emulator lives elsewhere
 
 Running the firmware (as opposed to statically naming it) is [`tt-emu`](https://github.com/nomeata/tt-emu).

@@ -15,7 +15,7 @@ find "$GHIDRA_WORK" -name '*.lock' -delete 2>/dev/null || true
 
 # apply_sigs.py / ghidra_rename.py read these from the environment (see tools/fwenv.sh).
 # LOADER_BASE lets ghidra_rename.py shift its hardcoded PROG-space labels to match the base.
-export NAMES_CSV TYPES_H NANDBOOT_BIN LOADER_BASE
+export NAMES_CSV TYPES_H NANDBOOT_BIN LOADER_BASE PIPELINE_2N_HAL
 
 echo "[1/2] signatures ..."
 sig=$($HA "$GHIDRA_WORK" tiptoi_base -process "$PROG_NAME" -noanalysis -postScript apply_sigs.py -scriptPath "$HERE" 2>&1)
