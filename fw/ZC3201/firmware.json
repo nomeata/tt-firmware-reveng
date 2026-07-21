@@ -1,0 +1,17 @@
+{
+  "variant": "ZC3201",
+  "status": "work-in-progress",
+  "description": "tiptoi 1st-gen pen (no recording/audiobook). Build v0136 / 120117 / ZC3201. ANYKANB0 NANDboot. Shares the architecture and the scripted-GME interpreter with the 2N; a useful cross-reference because it retained source-path and assert strings the 2N stripped.",
+  "loader_base": "0x08000000",
+  "upd": {
+    "filename": "update.upd",
+    "urls": [
+      "https://cdn.ravensburger.de/db/firmware/update%20encrypt%20normal%20freq.upd"
+    ],
+    "size": 6396452,
+    "sha256": "03c12f41b6bc9ab78ee206c2bdfdbe45eb9ad7c3ab8337e7a8661555aae4a4a6"
+  },
+  "blobs": {
+    "_note": "First-gen container layout. PROG is a 1 MiB image; offsets not yet re-verified in this repo."
+  }
+}

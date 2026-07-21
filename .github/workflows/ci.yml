@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # Fast, dependency-light checks that run on every push/PR.
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Firmware-leak guard (no firmware or derived data may be tracked)
+        run: |
+          leak=$(git ls-files | grep -Ei '\.(upd|bin|img)$|^fw/[^/]+/(data|out|ghidra)/' || true)
+          if [ -n "$leak" ]; then
+            echo "::error::firmware or derived artifacts are tracked:"; echo "$leak"; exit 1
+          fi
+          echo "ok: no firmware / derived data tracked"
+
+      - name: Validate firmware.json manifests
+        run: |
+          python3 - <<'PY'
+          import json, glob, sys
+          ok = True
+          for p in sorted(glob.glob("fw/*/firmware.json")):
+              m = json.load(open(p))
+              upd = m.get("upd", {})
+              for k in ("filename", "urls", "size", "sha256"):
+                  if k not in upd:
+                      print(f"::error file={p}::upd.{k} missing"); ok = False
+              for name, b in (m.get("blobs") or {}).items():
+                  if name.startswith("_"):
+                      continue
+                  for k in ("offset", "size", "sha256"):
+                      if k not in b:
+                          print(f"::error file={p}::blob {name}.{k} missing"); ok = False
+              print(f"ok: {p} ({m.get('variant')}, {'blobs' if m.get('blobs',{}).get('PROG.bin') else 'wip'})")
+          sys.exit(0 if ok else 1)
+          PY
+
+      - name: Python tooling syntax
+        run: |
+          python3 -m compileall -q tools/*.py && echo "ok: tools compile"
+
+  # The real proof of reproducibility: fetch the firmware, run the pipeline via the
+  # pinned Nix flake, and assert the named decompilation regenerates. Downloads the
+  # vendor .upd from Ravensburger's own server (not redistributed by this repo).
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v14
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Fetch + verify + unpack the firmware
+        run: nix develop --command tools/fetch_firmware.py 2N-update3202MT
+
+      - name: Ghidra base (import + auto-analysis)
+        run: nix develop --command bash -c 'FW=fw/2N-update3202MT tools/make_base.sh'
+
+      - name: Regenerate the named decompilation
+        run: nix develop --command bash -c 'FW=fw/2N-update3202MT tools/regen.sh'
+
+      - name: Assert the naming was applied
+        run: |
+          out=fw/2N-update3202MT/out/decomp_named
+          n=$(ls "$out"/*.c | wc -l)
+          echo "decompiled functions: $n"
+          [ "$n" -gt 2000 ] || { echo "::error::too few functions ($n)"; exit 1; }
+          # a known-named function must be present and rendered with our names
+          grep -rlq "gme_exec_command" "$out" || { echo "::error::gme_exec_command not named"; exit 1; }
+          grep -rlq "OP_PLAY_COINFLIP\|OP_CANCEL\|evt_dispatch_count" "$out" || { echo "::error::symbolic opcodes/globals missing"; exit 1; }
+          echo "ok: naming applied"
+
+      - name: Rebuild the GME coverage inventory
+        run: nix develop --command bash -c 'FW=fw/2N-update3202MT tools/gme_inventory.py'

@@ -1,0 +1,39 @@
+# =============================================================================
+# NEVER commit the firmware or anything mechanically derived from it.
+#
+# This repository contains our reverse-engineering work (naming/signature
+# databases, scripts, docs) but not the vendor firmware. Everything under each
+# variant's data/, out/, and ghidra/ is produced locally by the tooling from a
+# firmware image you obtain yourself (tools/fetch_firmware.py). Keep it out.
+# =============================================================================
+
+# extracted firmware + everything sliced from it (fetch_firmware.py output)
+fw/*/data/
+
+# generated analysis output (regen.sh / gme_inventory.py)
+fw/*/out/
+
+# Ghidra projects (contain the imported firmware image)
+fw/*/ghidra/
+
+# stray firmware images anywhere
+*.upd
+*.bin
+*.img
+*.img.*
+
+# python / tooling
+__pycache__/
+*.pyc
+.venv/
+*.orig
+*.orig[0-9]
+*.bak
+
+# nix
+result
+result-*
+
+# editor / OS
+.DS_Store
+*.swp

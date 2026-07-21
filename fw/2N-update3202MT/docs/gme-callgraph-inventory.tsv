@@ -1,0 +1,295 @@
+addr	name	region	named	sig	doc	locals	boundary
+0x08033fb0	gme_check_language	core-gme-script	Y		Y		
+0x08034130	gme_mount_check_product	core-gme-script	Y		Y		
+0x08034434	gme_clear_special_play_flag	core-gme-script	Y		Y		
+0x0803454c	gme_reset_media_cache	core-gme-script	Y		Y		
+0x08034900	sm_ao_all_rings_idle	core-gme-script	Y		Y		Y
+0x08034bc0	poweroff_voice_sequencer	core-gme-script	Y		Y		
+0x08034cbc	gme_read_game_type	core-gme-script	Y		Y		
+0x08034d74	gme_rand_in_range	core-gme-script	Y		Y		
+0x08034da0	gme_exec_command	core-gme-script	Y	Y	Y		
+0x08035338	gme_parse_media_offsets	core-gme-script	Y		Y		
+0x080353e8	gme_parse_playlist	core-gme-script	Y		Y		
+0x080354c8	gme_parse_actions	core-gme-script	Y	Y	Y	Y	
+0x08035624	gme_check_condition	core-gme-script	Y		Y		
+0x08035888	gme_parse_check_conditions	core-gme-script	Y		Y		
+0x080359a4	gme_oid_to_playscript	core-gme-script	Y		Y		
+0x08035a6c	gme_clear_script_state	core-gme-script	Y		Y		
+0x08035b8c	gme_parse_media_offsets2	core-gme-script	Y		Y		
+0x08035c3c	gme_parse_start_end_oid	core-gme-script	Y		Y		
+0x08035ca8	gme_reset_registers	core-gme-script	Y		Y		
+0x08035d20	gme_parse_header	core-gme-script	Y		Y		
+0x08036228	gme_parse_additional_script	core-gme-script	Y		Y		
+0x0803629c	gme_oid_dispatch	core-gme-script	Y	Y	Y		
+0x08038320	gme_play_system_voice	core-gme-dispatch/parse	Y		Y		
+0x08038be0	physpool_free	core-gme-dispatch/parse	Y		Y		Y
+0x08038c5c	gme_alloc_binary_region	core-gme-dispatch/parse	Y		Y		
+0x08038ce4	physpool_alloc	core-gme-dispatch/parse	Y		Y		Y
+0x08077230	gme_power_on_playlist_play	game-handlers(GME script types / states14-68)	Y		Y		
+0x080773c8	game_record_load_outer	game-handlers(GME script types / states14-68)	Y		Y		
+0x080774e0	game_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x080779ac	game14_pick_unplayed_subgame	game-handlers(GME script types / states14-68)	Y		Y		
+0x08077a8c	game14_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x08078014	playlistlist_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x08078050	playlistlist_play	game-handlers(GME script types / states14-68)	Y		Y		
+0x08078318	game14_match_target_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08078474	game14_match_decoy_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08078524	game14_match_other_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x080785cc	game14_phase_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x08078e58	game14_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x08079884	game61_ctx_reset	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807992c	game61_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x08079dec	game61_pick_unplayed_subgame	game-handlers(GME script types / states14-68)	Y		Y		
+0x08079e4c	game61_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807a1ac	game61_match_target_oids	game-handlers(GME script types / states14-68)	Y		Y	Y	
+0x0807a24c	game61_match_other_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807a2e0	game61_play_phase_cue	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807a500	game61_read_pll_count	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807a530	game61_phase_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807a8e4	game61_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807a940	game61_engine	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807b120	game61_teardown	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807b198	game62_ctx_reset	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807b240	game62_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807b4ac	game62_pick_unplayed_subgame	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807b50c	game62_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807b84c	game62_match_target_oids	game-handlers(GME script types / states14-68)	Y		Y	Y	
+0x0807b924	game62_match_other_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807b9d4	game62_read_pll_count	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807ba04	game62_play_phase_cue	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807bc10	game62_phase_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807bd68	game62_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807bdc8	game62_engine	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807c5e4	game62_teardown	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807c66c	game63_ctx_reset	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807c718	game63_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807c9e0	game63_pick_unplayed_band	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807ca38	game63_pick_unplayed_subgame_in_band	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807cbd0	game63_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807cf08	game63_match_target_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807cfa8	game63_play_phase_cue	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807d1b4	game63_match_other_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807d248	game63_phase_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807d440	game63_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807d4a0	game63_actionq_drain	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807d888	game63_engine	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807dca4	game63_teardown	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807dd50	game66_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807e21c	game66_pick_unplayed_subgame	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807e2fc	game66_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807e644	game66_read_first_target_oid	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807e68c	game66_match_drawn_targets	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807e700	game66_match_other_oids	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807e7a0	game66_match_decoy_oids	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807e848	game66_oid_alias_map	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807e87c	game66_read_pll_count	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807e8ac	game66_phase_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807ebe0	game66_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807ecac	game66_engine	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807ef54	game66_teardown	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807f004	game68_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807f4d0	game68_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807f82c	game68_match_target_oids	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807f904	game68_match_other_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807f9a0	game68_oid_alias_map	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0807faec	game68_phase_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807fcbc	game68_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x0807fd5c	game68_engine	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x08080100	game68_teardown	game-handlers(GME script types / states14-68)	Y		Y		
+0x08080178	game15_draw_subgame	game-handlers(GME script types / states14-68)	Y		Y		
+0x08080264	game15_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808059c	game15_match_target_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808063c	game15_match_wrong_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08080780	game15_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x08080910	game15_teardown	game-handlers(GME script types / states14-68)	Y		Y		
+0x08080988	game15_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x08081a14	game16_ctx_reset	game-handlers(GME script types / states14-68)	Y		Y		
+0x08081b24	game16_read_u16_field	game-handlers(GME script types / states14-68)	Y		Y		
+0x08081b64	game16_play_phase_cue	game-handlers(GME script types / states14-68)	Y		Y		
+0x08081d18	game16_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x080822e0	game16_pick_unplayed_subgame	game-handlers(GME script types / states14-68)	Y		Y		
+0x080823a0	game16_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x08082950	game16_subgame_match	game-handlers(GME script types / states14-68)	Y		Y		
+0x08082aac	game16_match_decoy_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08082b5c	game16_match_other_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08082bf4	game16_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808339c	game16_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x08083be0	game17_read_pll_count	game-handlers(GME script types / states14-68)	Y		Y		
+0x08083c14	game17_play_phase_cue	game-handlers(GME script types / states14-68)	Y		Y		
+0x08083e40	game17_ctx_reset	game-handlers(GME script types / states14-68)	Y		Y		
+0x08083f94	game17_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x080844bc	game17_pick_unplayed_group	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808459c	game17_load_group_ids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08084624	game17_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x08084bb0	game17_match_target_oids	game-handlers(GME script types / states14-68)	Y		Y	Y	
+0x08084d0c	game17_match_decoy_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08084dbc	game17_match_other_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08084e64	game17_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x08085370	game17_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x08085c64	game18_play_phase_cue	game-handlers(GME script types / states14-68)	Y		Y		
+0x08085e8c	game18_ctx_reset	game-handlers(GME script types / states14-68)	Y		Y		
+0x08085ee4	game18_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808617c	game18_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808637c	game18_match_menu_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08086410	game18_match_select_oid	game-handlers(GME script types / states14-68)	Y		Y		
+0x080864dc	game18_select_handler	game-handlers(GME script types / states14-68)	Y		Y		
+0x080866a8	game18_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808702c	game19_ctx_reset	game-handlers(GME script types / states14-68)	Y		Y		
+0x08087110	game19_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x080873f8	game19_match_extra_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08087494	game19_match_subgame_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08087528	game19_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x08087858	game19_match_target_ordered	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808795c	game19_match_decoy_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x080879f8	game19_play_phase_cue	game-handlers(GME script types / states14-68)	Y		Y		
+0x08087ba4	game19_read_u16_at	game-handlers(GME script types / states14-68)	Y		Y		
+0x08087bd4	game19_subgame_contains_tap	game-handlers(GME script types / states14-68)	Y		Y		
+0x08087bf4	game19_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x08088044	game19_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x08088800	game19_teardown	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808887c	game58_ctx_reset	game-handlers(GME script types / states14-68)	Y		Y		
+0x08088910	game58_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x08088b70	game58_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x08088eac	game58_match_target_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x08088f54	game58_play_phase_cue	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x08089118	game58_match_other_oids	game-handlers(GME script types / states14-68)	Y		Y	Y	
+0x080891b4	game58_match_special_pair	game-handlers(GME script types / states14-68)	Y		Y		
+0x08089214	game58_read_pll_count	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x08089244	game58_phase_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x080894fc	game58_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x08089558	game58_engine	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x08089ce0	game58_teardown	game-handlers(GME script types / states14-68)	Y		Y		
+0x08089d58	game59_ctx_reset	game-handlers(GME script types / states14-68)	Y		Y		
+0x08089df8	game59_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808a28c	game59_pick_unplayed_subgame	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808a2ec	game59_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808a61c	game59_match_target_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808a6bc	game59_match_decoy_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808a758	game59_match_other_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808a7ec	game59_read_pll_count	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0808a81c	game59_play_phase_cue	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0808aa44	game59_phase_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808adb0	game59_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808ae10	game59_engine	game-handlers(GME script types / states14-68)	Y	Y	Y		
+0x0808b680	game59_teardown	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808b708	game60_ctx_reset	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808b7ac	game60_record_load	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808bc80	game60_subgame_parse	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808bfd0	game60_match_question_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808c060	game60_match_other_oids	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808c0fc	game60_match_answer_oids	game-handlers(GME script types / states14-68)	Y		Y	Y	
+0x0808c1d0	game60_play_phase_cue	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808c37c	game60_read_u16_at	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808c3ac	game60_engine	game-handlers(GME script types / states14-68)	Y		Y		
+0x0808c610	game60_entry	game-handlers(GME script types / states14-68)	Y		Y		
+0x08054f54	game46_read_game_record	game-handlers(native type9 / states46-49)	Y		Y		
+0x080552b8	game46_pick_unplayed_subgame	game-handlers(native type9 / states46-49)	Y		Y		
+0x08055318	game46_subgame_parse	game-handlers(native type9 / states46-49)	Y		Y		
+0x08055520	game46_match_target_oids	game-handlers(native type9 / states46-49)	Y		Y		
+0x080555e4	game46_next_cue_phase	game-handlers(native type9 / states46-49)	Y		Y		
+0x080556b8	native_cue_play	game-handlers(native type9 / states46-49)	Y		Y		
+0x08055864	game46_engine	game-handlers(native type9 / states46-49)	Y		Y		
+0x08056890	game47_read_game_record	game-handlers(native type9 / states46-49)	Y		Y		
+0x080582ac	game48_read_game_record	game-handlers(native type9 / states46-49)	Y		Y		
+0x0805a6c4	game49_read_game_record	game-handlers(native type9 / states46-49)	Y		Y		
+0x0806a0dc	game_pick_voice	game-reading/wronglimit	Y		Y		
+0x0806a3c4	game_voice_pick_norepeat	game-reading/wronglimit	Y		Y		
+0x0806a54c	game_oid_alias_equal	game-reading/wronglimit	Y		Y		
+0x0806a580	game_reading_sm	game-reading/wronglimit	Y		Y		
+0x0806ba54	game_start	game-reading/wronglimit	Y		Y		
+0x0806bad8	game_oid_dispatch	game-reading/wronglimit	Y		Y		
+0x0806e478	game_wronglimit_pick_subgame	game-reading/wronglimit	Y		Y		
+0x0806e498	game_wronglimit_subgame_parse	game-reading/wronglimit	Y		Y		
+0x0806e7a0	game_wronglimit_match_target	game-reading/wronglimit	Y		Y	Y	
+0x0806e8dc	game_wronglimit_match_other	game-reading/wronglimit	Y		Y		
+0x0806e990	game_wronglimit_play_phase_cue	game-reading/wronglimit	Y		Y		
+0x0806eb3c	game_wronglimit_play_random_cue	game-reading/wronglimit	Y		Y		
+0x0806ecf4	game_wronglimit_pick_voice	game-reading/wronglimit	Y		Y		
+0x0806efc8	game_score_max4	game-reading/wronglimit	Y		Y		
+0x0806efe4	game_count_max_winners	game-reading/wronglimit	Y		Y		
+0x0806f058	game_random_id	game-reading/wronglimit	Y		Y		
+0x0806f244	game_wronglimit_sm	game-reading/wronglimit	Y		Y		
+0x0808d298	game_quiz_lookup_question	game-quiz/findtarget	Y		Y		
+0x0808d3c8	game_quiz_load_profmad_cand_maybe	game-quiz/findtarget	Y		Y		
+0x0808d6a0	game_quiz_play_cue	game-quiz/findtarget	Y		Y		
+0x0808d84c	game_quiz_match_answer	game-quiz/findtarget	Y		Y		
+0x0808d8ec	game_quiz_match_answerset_maybe	game-quiz/findtarget	Y		Y		
+0x0808d98c	game_quiz_sm	game-quiz/findtarget	Y		Y		
+0x08092704	findtarget_subgame_parse	game-quiz/findtarget	Y		Y		
+0x08092a58	findtarget_match_target_oids	game-quiz/findtarget	Y		Y		
+0x08092b58	findtarget_play_phase_cue	game-quiz/findtarget	Y		Y		
+0x08092d28	findtarget_claim_target	game-quiz/findtarget	Y		Y		
+0x08092dac	findtarget_claim_target_quiet	game-quiz/findtarget	Y		Y		
+0x08092eac	findtarget_pick_unfound_target	game-quiz/findtarget	Y		Y		
+0x08092f00	game_findtarget_sm	game-quiz/findtarget	Y		Y		
+0x080a8438	altbook_play_oid_cue	gme-binary-launch/voice	Y		Y		
+0x080a8518	altbook_load_oid_list	gme-binary-launch/voice	Y		Y		
+0x080a8594	altbook_queue_pending_list	gme-binary-launch/voice	Y		Y		
+0x080a8670	altbook_load_oid_list_2	gme-binary-launch/voice	Y		Y		
+0x080a86ec	altbook_play_next_in_list	gme-binary-launch/voice	Y		Y		
+0x080a8ecc	Fat_AllocFat	gme-binary-launch/voice	Y				Y
+0x080aa208	game31_entry	gme-binary-launch/voice	Y		Y		
+0x080aa264	altbook_game_teardown	gme-binary-launch/voice	Y		Y		
+0x080aa2ac	altbook_special_oid_handler	gme-binary-launch/voice	Y		Y		
+0x080aa498	game31_engine	gme-binary-launch/voice	Y		Y		
+0x080aa934	gme_launch_binary_build_sysapi	gme-binary-launch/voice	Y		Y		
+0x080aadd8	gme_read_main_binary_table	gme-binary-launch/voice	Y	Y	Y		
+0x080aaf70	gme_oid_dispatch_alt	gme-binary-launch/voice	Y		Y		
+0x080ab3ec	audio_amp_disable	gme-binary-launch/voice	Y				Y
+0x080ab424	audio_mute	gme-binary-launch/voice	Y		Y		Y
+0x080ab620	fwl_voice_stop_sync	gme-binary-launch/voice	Y		Y		Y
+0x080ab7b4	play_media	gme-binary-launch/voice	Y		Y		Y
+0x080ab9ac	fwl_play_voice_by_id	gme-binary-launch/voice	Y				Y
+0x08009878	ptr_nonnull_check	generic-service/other	Y				Y
+0x08009890	dbg_stub2	generic-service/other	Y				Y
+0x08009cf4	memset0	generic-service/other	Y				Y
+0x08009df4	memset	generic-service/other	Y		Y		Y
+0x0800aebc	audio_state_reset	generic-service/other	Y				Y
+0x0800b024	is_audio_playing	generic-service/other	Y		Y		Y
+0x0800b2ec	audio_wait_tick	generic-service/other	Y				Y
+0x0800b35c	event_queue_post	generic-service/other	Y		Y		Y
+0x0800b464	battery_meas_enable	generic-service/other	Y		Y		Y
+0x0800b65c	sm_set_sound_profile	generic-service/other	Y		Y		Y
+0x0800b86c	sm_ao_ring_clear	generic-service/other	Y				Y
+0x0800b8cc	sm_ao_event_coalesce	generic-service/other	Y				Y
+0x0800de20	fs_open	generic-service/other	Y		Y		Y
+0x0800dec8	fs_read	generic-service/other	Y		Y		Y
+0x0800ded8	fs_seek	generic-service/other	Y		Y		Y
+0x0802265c	audio_gain_commit	generic-service/other	Y		Y		Y
+0x0802ff04	audio_clk_push	generic-service/other	Y		Y		Y
+0x0802ff4c	audio_clk_apply	generic-service/other	Y		Y		Y
+0x0803062c	rt_udiv10	generic-service/other	Y		Y		Y
+0x0803089c	Utl_UStrAppend	generic-service/other	Y		Y		Y
+0x08030c88	sys_get_tick	generic-service/other	Y		Y		
+0x08031db0	aud_player_stop_2	generic-service/other	Y		Y		Y
+0x08031f6c	dac_up_check	generic-service/other	Y				Y
+0x08032cb4	aud_player_dac_teardown	generic-service/other	Y		Y		Y
+0x08032d38	dac_power_teardown	generic-service/other	Y		Y		Y
+0x08033004	audio_codec_power_ctl	generic-service/other	Y		Y		Y
+0x08033334	dac_bringup	generic-service/other	Y		Y		Y
+0x0804fda8	sys_get_heartbeat_count	generic-service/other	Y		Y		
+0x08050898	codec_reinit	generic-service/other	Y		Y		
+0x0805c0f0	game_binary_launch	generic-service/other	Y		Y		
+0x08069a20	game_ctx_init_flags	generic-service/other	Y		Y		
+0x08069a3c	game_load_header	generic-service/other	Y		Y		
+0x08069f0c	game_play_phase_cue	generic-service/other	Y		Y		
+0x08074b7c	game_load_playlist_offsets	generic-service/other	Y		Y		
+0x080ac5f8	rng_below	generic-service/other	Y				Y
+0x080ac8e0	Utl_UStrCmp	generic-service/other	Y				Y
+0x080ac978	Utl_UAtoi	generic-service/other	Y				Y
+0x080ad4e4	fs_list_write_record	generic-service/other	Y		Y		Y
+0x080ad514	file_close_if_valid	generic-service/other	Y		Y		Y
+0x080ef820	FUN_080ef820	generic-service/other					Y
+0x080f0580	FUN_080f0580	generic-service/other					Y
+0x080f0618	FUN_080f0618	generic-service/other					Y
+0x080f3de8	thunk_FUN_0800927c	generic-service/other	Y				Y
+0x081117dc	FUN_081117dc	generic-service/other					Y
+0x08003110	?	nandboot-HAL(boundary)					Y
+0x08003118	?	nandboot-HAL(boundary)					Y
+0x080031d0	?	nandboot-HAL(boundary)					Y
+0x08003644	?	nandboot-HAL(boundary)					Y
+0x08005be8	?	nandboot-HAL(boundary)					Y
+0x08007734	?	nandboot-HAL(boundary)					Y
+0x08007740	?	nandboot-HAL(boundary)					Y
+0x0800780c	?	nandboot-HAL(boundary)					Y
+0x08007938	?	nandboot-HAL(boundary)					Y

@@ -1,0 +1,17 @@
+{
+  "variant": "3L-Update3203L",
+  "status": "stub",
+  "description": "tiptoi 3rd-gen pen with audio player, ZC3203L. Not yet analysed in this repo; manifest present so the download/verify tooling can target it.",
+  "loader_base": "0x08000000",
+  "upd": {
+    "filename": "Update3203L.upd",
+    "urls": [
+      "https://cdn.ravensburger.de/db/firmware/Update3203L.upd"
+    ],
+    "size": 13074724,
+    "sha256": "4eca9627b689ac9bdd974b29286705116e36028f6f8e4785f4f41520e7c9d265"
+  },
+  "blobs": {
+    "_note": "Not yet analysed."
+  }
+}

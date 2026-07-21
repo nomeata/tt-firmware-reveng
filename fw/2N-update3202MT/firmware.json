@@ -1,0 +1,39 @@
+{
+  "variant": "2N-update3202MT",
+  "description": "tiptoi 2nd-gen pen, ZC3202N with Micron (MT) NAND. German build N0038MT / 20131009. This is the flagship variant: fully analysed, and the one that matches the maintainer's real pen.",
+  "loader_base": "0x08009000",
+  "upd": {
+    "filename": "update3202MT.upd",
+    "urls": [
+      "https://cdn.ravensburger.de/db/firmware/update3202MT.upd"
+    ],
+    "size": 11303276,
+    "sha256": "8e37af0a3d3c126189447964784fd84ccf0356cb7425b5ab478e86b3352741f9"
+  },
+  "blobs": {
+    "PROG.bin": {
+      "offset": "0x28000",
+      "size": "0x380000",
+      "sha256": "252777cbe66d310ebf920f90df2aa79e4c9f62f0f2de5d8126dce6a96377aa2c",
+      "role": "full firmware image; the primary Ghidra import (flat load at loader_base)"
+    },
+    "nandboot.bin": {
+      "offset": "0x20000",
+      "size": "0x7e80",
+      "sha256": "fec9d9ab0bd364c153ad69fa326ca6bb91b8fd69d701d4179f59a49b01f60477",
+      "role": "ANYKANB1 NANDboot blob, mapped at 0x07ff8000; supplies the bootrom HAL names"
+    },
+    "producer.bin": {
+      "offset": "0x3400",
+      "size": "0x1cafc",
+      "sha256": "d64d7c8a296872815fed5d20f74809ea1140702527cc901f03342df1adffa322",
+      "role": "factory USB-flashing / provisioning stage (not used by the naming pipeline)"
+    },
+    "codepage.bin": {
+      "offset": "0x3a8000",
+      "size": "0xd6ccc",
+      "sha256": "db4549ffa8ab47cb0358b744112872d7006dcdaf82dceaed81227c49fe001cf9",
+      "role": "GB/codepage tables (not used by the naming pipeline)"
+    }
+  }
+}
