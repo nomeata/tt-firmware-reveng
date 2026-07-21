@@ -81,7 +81,7 @@ Complete set of pins the firmware **ever writes** (via `hal_gpio_write` 0x080077
 | 0x10 (16) | speaker amp enable |
 | 0xFF | **dummy no-pin sentinel** (writes lost; reads ≡ 0) |
 
-The **unassigned output candidates named in the task (pins 3, 4, 14, and 17+) are never written**
+The **unassigned output candidates (pins 3, 4, 14, and 17+) are never written**
 by any code path. Direct `_DAT_04000080` RMW writes exist only in the **dormant I²C block**
 (`reg04000080_set_bit/clr_bit` 0x080f39ac/0x080f39c4, `i2c_gpio_init` 0x080f355c), whose channels
 resolve through `gpio_pin_lookup` (0x0800af74) to **0xFF = no-pin** (dead code for the type-1/3
@@ -155,7 +155,7 @@ touched, so this can be excluded. [Proven]
 - Any per-tap illumination is a property of the Sonix two-wire OID front-end (the sensor's own
   capture LED), not of a SoC GPIO. Purely cosmetic; irrelevant to boot or a book session. [Inferred]
 
-### Names / docstrings (harvest)
+### Proposed names / docstrings
 
 | addr | name | docstring |
 |---|---|---|

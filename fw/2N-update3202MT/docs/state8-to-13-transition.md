@@ -282,8 +282,9 @@ So **every `0x1060` OID-tap event → state 9 → transition-action[5] → `FUN_
 armed by splash and re-armed by standby entry) posts it into the input ring irrespective of the active
 leaf.
 
-`FUN_08037cec` reads the decoded OID at **`akoid_buf+4`**, matches the cover/product-OID families keyed
-by the mode selector `*DAT_080381a4` (`0x081da08c`), and on a cover match
+`FUN_08037cec` reads the decoded OID at **`akoid_buf+4`**. It classifies the tap against the
+cover/product-OID families (keyed by the mode selector `*DAT_080381a4` = `0x081da08c`) for bookkeeping,
+but the event post is driven by the **first-load** condition, independent of the selector
 (`akoid_buf[0]!=0 && game_ctx+0x1d==2 && akoid_buf+0x21==0xff && *0x08008c0d!=-1`):
 
 ```c
@@ -331,6 +332,10 @@ state 13 (BOOK) entry 0x080345cc, then each in-book OID tap:
         → event-action[17] = gme_oid_dispatch 0x0803629c → resolve OID via a:/oidfilelist.lst → play media
 ```
 
+This walk — power-on to standby, silent until the first tap, then a decoded cover tap into book mode
+(state 13) with the product mounted — has been reproduced by running the unmodified firmware under
+[`tt-emu`](https://github.com/nomeata/tt-emu). [Proven]
+
 ### 7.5 NAND-FS dependencies of the cover-tap path
 
 Drive-letter map (Proven from the path strings + `nftl-layout.md`): **`W:`** = flat/linear *system*
@@ -344,7 +349,7 @@ archive** (its internal `oidfilelist.lst`/`voicelist.lst`/`musiclist.lst`). What
 | 1 | **NFTL system + FAT partitions** | `fs_storage_mount_init` 0x0803a484; `nftl_check_anyka_ic`, `fs_partition_scan` | mounts the flat + wear-leveled partitions | **HARD FAULT** — `app_init_main` loops forever if the mount returns nonzero; `fs_storage_mount_init` has two `do{}while(true)` traps if the device/FTL cannot be built. A valid FTL is mandatory. |
 | 2 | **`W:/codepage.bin`** (NLS conversion tables; `codepage-what-is-it.md`) | `boot_read_serial_and_codepage` 0x0803a3b0 → `codepage_get_header` 0x08030fb4 → `codepage_load` 0x08030e4c | text/token glyphs; codepage/lang selection | **Soft-degrade** — retries a backup then returns −1; boot continues (return ignored). Required for correct text/lang, not to open a book. |
 | 3 | **pen serial** (8 bytes) | `boot_read_serial_and_codepage` 0x0803a3b0 | product/lang gating; log headers | If unreadable → boot flag stays 0 (soft); does not block the cover-tap path. |
-| 4 | **cover-OID mode selector** `*DAT_080381a4` = RAM `0x081da08c` | `FUN_08037cec` 0x08037cec | selects which cover-OID family is accepted | Set during product/content init (RAM, not a file). If unset (0), the family guards fail — the classifier will not post 0x1058. **Inferred** it is seeded from the product/book type at mount. |
+| 4 | **cover-OID mode selector** `*DAT_080381a4` = RAM `0x081da08c` | `FUN_08037cec` 0x08037cec | fast-classifies a tap as the current product's cover family (bookkeeping only) | `.bss`, seeded by `gme_parse_header` at product mount (`product-init-and-runtime-tables.md` §4). If 0, only the "belongs to another product" bookkeeping is skipped — the **first-load** branch still posts 0x1058 (§7.2). |
 | 5 | **`B:/` book archives** — `*.bnl` files | state-12 entry `FUN_08034300` → `FUN_080ad7c0` ("B:/","*.bnl") into 0x081da080 | the book/product content to mount | If none found → mount-error flag set; state 13 still entered but with no content → error/again audio. |
 | 6 | **book header** — magic `0x238b` @ off 8, language, product-id @ off 0x14 | `gme_mount_check_product` 0x08034130 | validate each `.bnl`/`.gme`, match language/product | A file failing magic/language is skipped; if all fail, no product mounts. |
 | 7 | **`a:/oidfilelist.lst`** (+ `voicelist.lst`, `musiclist.lst`) | `FUN_080ae2c0` 0x080ae2c0, via `gme_oid_dispatch` (event-action[17]) | maps a tapped in-book OID to the file to play | If absent/empty the OID→media lookup fails → tap produces no/erroneous audio; opening the book still succeeds. |
@@ -362,4 +367,4 @@ archive** (its internal `oidfilelist.lst`/`voicelist.lst`/`musiclist.lst`). What
 | **fresh cover tap opens a book at standby (no FLAG.bin)** | **Proven** | composition of the above + §7.3 |
 | `fs_storage_mount_init` hangs on a bad FTL; `app_init_main` hangs on mount!=0 | **Proven** | 0x0803a484; `app_init_main` 0x08038f5c |
 | `game_ctx+0x24=1` set only by splash entry, from `B:/FLAG.bin` | **Proven** | `FUN_0804c1d4`; `fwupdate_finish_restart` 0x08052224 |
-| cover-OID **mode selector `0x081da08c`** must match for `FUN_08037cec` to fire | **Proven (gate) / Inferred (who seeds it)** | `FUN_08037cec`; seeding at product init not byte-traced |
+| cover-OID **mode selector `0x081da08c`** is seeded by `gme_parse_header` at product mount; it is *not* required for the first-load 0x1058 post | **Proven** | `FUN_08037cec`; `gme_parse_header` 0x08035d20 (`product-init-and-runtime-tables.md` §4/§8) |

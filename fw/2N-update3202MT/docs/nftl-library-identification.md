@@ -134,14 +134,14 @@ The `flag` bitfield is documented in `nand_list.h` comments (authoritative):
 | **bits 4-7** | **ECC type**: 0=4bit/512B, 1=8bit/512B, 2=12bit/512B, 3=16bit/512B, 4=24bit/1024B, 5=32bit/1024B |
 | **bit0** | pages within a block **must be written sequentially** (MLC) |
 
-→ This **resolves an open item in `nftl-layout.md §5 "ECC scheme"`**: the ECC strength is
-not hidden in the NFC — it is selected by **`flash_ic.flag` bits 4-7**. The pen's
-`flag=0x1` means **bit0=1 (sequential-write) and ECC-type field = 0 → 4 bit/512B ECC**.
-(This refines the doc's "Inferred BCH" note: the encoding is per-512B and the strength is a
-table field; `0x1` decodes to the weakest 4-bit setting. Verify against a real spare dump —
-but the *mechanism* is now authoritative.) The corresponding ECC enum is echoed in the
-Linux glue: `wrap_nand.c` clamps `ecc_type` to `ECC_12BIT_P512B` and the type list is
-`ECC_{4,8,12}BIT_P512B / ECC_{24,32}BIT_P1024B`.
+→ This settles the ECC-strength question raised in [`nftl-layout.md`](nftl-layout.md) §5
+("ECC scheme"): the strength is not hidden in the NFC — it is selected by **`flash_ic.flag`
+bits 4-7**. The pen's `flag=0x1` means **bit0=1 (sequential-write) and ECC-type field = 0 →
+4 bit/512B ECC**. The encoding is per-512B and the strength is a table field; `0x1` decodes
+to the weakest 4-bit setting (verify against a real spare dump, but the *mechanism* is
+authoritative). The corresponding ECC enum is echoed in the Linux glue: `wrap_nand.c` clamps
+`ecc_type` to `ECC_12BIT_P512B` and the type list is `ECC_{4,8,12}BIT_P512B /
+ECC_{24,32}BIT_P1024B`.
 
 ## 3. Match table — our RE'd structures vs. Anyka SDK
 
@@ -151,7 +151,7 @@ Linux glue: `wrap_nand.c` clamps `ecc_type` to `ECC_12BIT_P512B` and the type li
 | Chip magic **`ANYKANB1/2`** + `"your ic isn't anyka ic!"` | Anyka chip-identity self-check; `E_FHA_CHIP_TYPE` incl. `//snowbird2` | **Exact** (it is Anyka's guard) | `PROG.bin` string; `fha.h` enum |
 | `flash_ic` geometry row in `.upd` | **`T_NAND_PHY_INFO`** (`nand_list.h`) | **Exact, field-for-field** | `nand_list.h` |
 | ECC "per-512B, strength unknown" | `flash_ic.flag` **bits 4-7 = ECC type table**; per-512/1024B | **Exact mechanism** | `nand_list.h` flag comment; `wrap_nand.c` `ECC_*` |
-| linear-vs-wear selector (`chip[+4]&0x10000000`) + `flash_ic` bit0x1 | `flag` **bit0 = sequential-write (MLC)**; reserve "zone" via `FHA_*_resv_zone_info` | **Partial** (bit0 role now known; the internal wear-flag is MtdLib-internal) | `nand_list.h`; `fha.h` |
+| linear-vs-wear selector (`chip[+4]&0x10000000`) + `flash_ic` bit0x1 | `flag` **bit0 = sequential-write (MLC)**; reserve "zone" via `FHA_*_resv_zone_info` | **Partial** (bit0 role identified; the internal wear-flag is MtdLib-internal) | `nand_list.h`; `fha.h` |
 | per-bin **log2phy** `{u16 RB, u16 UB}` map | **`FHA_get_maplist(...,T_U16 *map_data,...,bBackup)`** | **Exact** (u16 map, origin/backup) | `fha.h`; producer `FUN_0800c5d4` |
 | **`Medium_CreatePartition` / `Nand_CreatePartition`** | MtdLib/FsLib API of the same name | **Exact** (same symbol) | `PROG.bin` strings |
 | burn taxonomy BOOT/ASA/BIN/FS | **`E_FHA_DATA_TYPE`** = BOOT/ASA/BIN/FS/GET_NAND_PARAM | **Exact** | `fha.h` |

@@ -97,7 +97,7 @@ it was scanned with — it never builds another medium. **Proven** (`0x08039ddc.
 
 **Answer Q1: the mounted volume reads through the SAME NFTL submedium as
 `fs_partition_scan`. There is no raw/mis-based volume medium, and `vol+0x4c = 0` is the
-correct superfloppy base.** With the round-15 dense map (0:0 1:1 2:2 …) a root-dir read
+correct superfloppy base.** With the resolved dense map (0:0 1:1 2:2 …) a root-dir read
 at LBA 260 *would* resolve to logical block 1 → physical **135**. It just never gets
 issued (§3).
 

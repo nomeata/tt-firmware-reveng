@@ -3,8 +3,8 @@
 > READ-ONLY audit for GOAL 2. Catalogs every opcode, condition, game-type, media/codec path
 > and header table the MT GME interpreter handles, with a **documented / undocumented** verdict
 > per item and an overall "can we run arbitrary GMEs" assessment. All addresses = unified runtime
-> base **0x08009000** (`data/PROG.bin` flat load). Evidence: **[P]** = read from
-> `out/decomp_named/` / PROG.bin bytes; **[I]** = inferred.
+> base **0x08009000** (`data/PROG.bin` flat load). Evidence: **[Proven]** = read from
+> `out/decomp_named/` / PROG.bin bytes; **[Inferred]** = inferred.
 > Companions: `gme-timer-counter-random.md`, `book-discovery-and-load.md`, `media-pipeline.md`,
 > `statechart-full-map.md`. External cross-ref: tttool `tip-toi-reveng/GME-Format.md`.
 
@@ -15,13 +15,13 @@
 The MT GME model is **complete enough to run arbitrary standard (script-driven) GMEs**, not just
 `taschenrechner`. Every action opcode, every conditional, the play-script / media / playlist /
 additional-script / register / game / OID-range tables, the codec dispatch and all six play-modes
-are fully reversed and byte-for-byte in view. **Three previously-open items are resolved here:**
+are fully reversed and byte-for-byte in view. **Three items open in the community docs are settled here:**
 (1) the tttool "raw→real XOR" mystery (`GME-Format.md` §165) — it is a **256-byte lookup table
 in firmware ROM @0x080381da**, `real = table[raw]`, verified `table[0x39]=0xAD`;
 (2) the header `0x8C` "media-flag table" of unknown meaning — the firmware uses it in `play_media`
 as a per-media **"VoiceNumberNeedRep"** repeat-suppression list; (3) the dual-playlist for GME
 **game-type 12**. The only genuinely **undocumented opcodes** are the minor **0xFFA1** (coin-flip
-play, resolved 2026-07-20 — §1) and the **0xFFFC** conditional (an Eq alias) — both handled by the firmware, neither in
+play — §1) and the **0xFFFC** conditional (an Eq alias) — both handled by the firmware, neither in
 tttool, neither exercised by taschenrechner. The parts that would break "arbitrary" GMEs are **not
 format gaps** but two content classes that carry their own code/decoders: embedded **ZC3202N
 main-binary** GMEs (hdr@0xA8 → ARM code run via a ~90-entry system_api vtable) execute real content
@@ -53,8 +53,8 @@ u16[] @0x081da350. Opcode = 16-bit LE (`0xHHLL`), matching the firmware `switch`
 | 0xFE00 | Timer (real) | arm periodic sw-timer, delay `m*100`, auto-reload, handle @0x08121ecc | ✅ (gme-timer §4) |
 | 0xFEFF | — | **cancel** the GME timer | ✅ (gme-timer; NOT in tttool) |
 | 0xFC00 | Random a b | play `playlist[heartbeat_ctr % (a-b+1) + b]` via `gme_rand_in_range` | ✅ (gme-timer §3b) |
-| 0xFFE0 | RandomVariant `P*` | round-robin `playlist[dispatch_ctr%len]` (ctr @gamectx+0x125, pick @+0x141) | ✅ |
-| 0xFFE1 | PlayAllVariant | play entry 0, play-all mode (gamectx+0x12c=1, ++0x12d) | ✅ |
+| 0xFFE0 | RandomVariant `P*` | round-robin `playlist[dispatch_ctr%len]` over the whole line playlist (ctr @gamectx+0x125, pick @+0x141) | ✅ |
+| 0xFFE1 | PlayAllVariant | play the whole line playlist: entry 0 now + rest on audio-stop, play-all mode (gamectx+0x12c=1, ++0x12d) | ✅ |
 | 0xFFE8 | Play n | play `playlist[n]` | ✅ |
 | 0xFB00 | PlayAll | play from `hi`, mode 2 (gamectx+0x12e=hi) | ✅ |
 | 0xFAFF | Cancel | "Exit A Game", posts event 2 | ✅ |
@@ -62,11 +62,10 @@ u16[] @0x081da350. Opcode = 16-bit LE (`0xHHLL`), matching the firmware `switch`
 | 0xFD00 | Game | game-select: reads hdr, posts event in state 0x0B; sets ctx+0x132/0x131 | ✅ |
 | 0xFEE0..0xFEE7 | — | `sm_set_sound_profile(0..7)` — sound/rate-profile set (NOT a state jump) | ✅ (corrected in statechart-map) |
 | 0xFEE8 | — | nop (returns) | ✅ |
-| **0xFFA1** | — | **coin-flip play** `P½(m)`: clear `ffa1_did_play`; iff `evt_dispatch_count` (ctx+0x125) is EVEN, play `playlist[m]` **immediately** (shared FFE8 play tail) and latch `ffa1_play_idx`=m&0xff, `ffa1_did_play`=1 (replay-after-interruption record); odd count = complete no-op — see the 2026-07-20 resolution below | ⚠️ **UNDOCUMENTED** (not in tttool) |
+| **0xFFA1** | — | **coin-flip play** `P½(m)`: clear `ffa1_did_play`; iff `evt_dispatch_count` (ctx+0x125) is EVEN, play `playlist[m]` **immediately** (shared FFE8 play tail) and latch `ffa1_play_idx`=m&0xff, `ffa1_did_play`=1 (replay-after-interruption record); odd count = complete no-op — see §1 below | ⚠️ **UNDOCUMENTED** (not in tttool) |
 
-**Undocumented action opcode: 0xFFA1 = "coin-flip play" — RESOLVED 2026-07-20** (asm read of the
-handler @0x080352cc + parity-instrumented tt-emu experiment; supersedes both earlier readings
-below). Semantics when the action executes (like any queued play action, at its slot in the
+**Action opcode 0xFFA1 = "coin-flip play"** (handler @0x080352cc), confirmed dynamically in
+tt-emu. Semantics when the action executes (like any queued play action, at its slot in the
 audio-boundary walk):
 
 1. `ffa1_did_play` (ctx+0xddf) is **always cleared** first.
@@ -75,35 +74,29 @@ audio-boundary walk):
    same play tail as `P(m)`/FFE8 @0x08035288 (full u16 operand as index, no bounds check) — and
    record the roll: `ffa1_play_idx` (ctx+0xde0) = m&0xff, `ffa1_did_play` = 1.
 
-So 0xFFA1 is `P(m)` executed with probability ~½: the "gate" is the LSB of the **free-running
-book-mode event counter** `evt_dispatch_count`, which `gme_oid_dispatch` increments once at the
-top of EVERY invocation — i.e. for every event book(13) receives (0x1046 OID-poll heartbeat
-~10/s, taps, GME-timer 0x30, keys). Since a queued action executes at an audio boundary whose
-timing depends on the preceding clip's length, the parity at execution time is unpredictable in
-practice — a deliberate cheap Bernoulli(½), the exact sibling of P* (same counter, modulo) and
-Rand/P(b-a) (tick / heartbeat counters). The latch is **not** a deferred play: it exists so the
-REPLAY walks (`actq_walk_mode==2` and the game-launch/voice-stop resume paths, which re-issue
-plays without re-rolling — P*→`pstar_last_idx`, P(b-a)→`prand_last_idx`) can reproduce the same
-outcome: they play `playlist[ffa1_play_idx]` iff `ffa1_did_play`, i.e. the coin is flipped once
-per execution, never per replay. Operand is literal-only (`is_literal` unchecked); the immediate
-play uses the full u16 operand while the latch is byte-truncated. `book_state_entry` resets the
-latch (0xddf=0, 0xde0=0xff).
+So 0xFFA1 is `P(m)` executed with probability ~½: the operand is a **playlist position**, and the
+"gate" is the LSB of the **free-running book-mode event counter** `evt_dispatch_count`, which
+`gme_oid_dispatch` increments once at the top of EVERY invocation — i.e. for every event book(13)
+receives (0x1046 OID-poll heartbeat ~10/s, taps, GME-timer 0x30, keys). Since a queued action
+executes at an audio boundary whose timing depends on the preceding clip's length, the parity at
+execution time is unpredictable in practice — a deliberate cheap Bernoulli(½), the exact sibling
+of P* (same counter, modulo) and Rand/P(b-a) (tick / heartbeat counters). The latch is **not** a
+deferred play: it exists so the REPLAY walks (`actq_walk_mode==2` and the game-launch/voice-stop
+resume paths, which re-issue plays without re-rolling — P*→`pstar_last_idx`, P(b-a)→`prand_last_idx`)
+can reproduce the same outcome: they play `playlist[ffa1_play_idx]` iff `ffa1_did_play`, i.e. the
+coin is flipped once per execution, never per replay. Operand is literal-only (`is_literal`
+unchecked); the immediate play uses the full u16 operand while the latch is byte-truncated.
+`book_state_entry` resets the latch (0xddf=0, 0xde0=0xff).
 
-**Empirical (tt-emu, 2026-07-20, deterministic pacing):** GME line `P(eins) 0xFFA1(1) P(drei)`
-over playlist `[eins,zwei,drei]`, PC watch on the FFA1 handler reading ctx+0x125: every tap with
-even count at FFA1-execution → media order **eins, zwei, drei** (the FFA1 plays ITS operand at
-ITS queue slot, in the middle) + latch armed; every odd → **eins, drei** + latch clear; 8/8 taps
-correlate exactly. This also explains the earlier "3 vs 2 media events" result and kills the
-"even-dispatch-parity coin-flip *arming*, played later" placeholder: nothing is deferred.
+**Confirmed dynamically (tt-emu):** GME line `P(eins) 0xFFA1(1) P(drei)` over playlist
+`[eins,zwei,drei]`, PC watch on the FFA1 handler reading ctx+0x125: every tap with even count at
+FFA1-execution → media order **eins, zwei, drei** (the FFA1 plays ITS operand at ITS queue slot,
+in the middle) + latch armed; every odd → **eins, drei** + latch clear; taps correlate exactly.
+The play is immediate, not deferred; a 0xFFA1 placed in a *playlist* (rather than an action slot)
+plays nothing — it is a media index there, OOB → playback wedges. GME-Format.md carries no 0xFFA1
+entry; this is a candidate addition.
 
-> **History.** First reading (2026-07-18) called it a "deferred play-index consumed by a playlist
-> sentinel" — wrong on both counts (the walk is over the decoded **action queue**, and the play is
-> immediate). Second reading (2026-07-19, nomeata/tip-toi-reveng PR #7/#10) fixed the queue-vs-
-> playlist confusion but still modelled it as a two-phase latch-then-insert with "coin-flip
-> arming". A 0xFFA1 placed in a *playlist* still plays nothing (it is a media index there, OOB →
-> playback wedges). GME-Format.md's 0xFFA1 paragraph should be updated to the resolved story.
-
-### Conditional opcodes (`gme_check_condition` @0x08035624) [P]
+### Conditional opcodes (`gme_check_condition` @0x08035624) [Proven]
 
 | opcode | meaning | doc verdict |
 |---|---|---|
@@ -119,11 +112,11 @@ All conditions are pure u16 compares over the register file, with the `is_const`
 literal-vs-register on each side. Any unlisted opcode → default → returns 0 (condition false).
 
 **Opcode completeness: COMPLETE.** The `switch` has no reachable case we do not name. The only
-gaps vs. our prior docs are the two ⚠ items above (0xFFA1, 0xFFFC), both now catalogued.
+gaps vs. tttool are the two ⚠ items above (0xFFA1, 0xFFFC), both catalogued here.
 
 ---
 
-## 2. Game-types — `FUN_08034cbc` (type read) + dispatch mapping [P]
+## 2. Game-types — `FUN_08034cbc` (type read) + dispatch mapping [Proven]
 
 The GME **game table** (hdr@0x10) is walked by `FUN_08034cbc` (0x08034cbc), which returns the
 tapped OID's **game-type byte** (via ctx+0x131 record index). `gme_oid_dispatch` maps
@@ -159,7 +152,7 @@ we have never executed — a runtime gap, not a format gap.
 
 ---
 
-## 3. Media / playlist model [P]
+## 3. Media / playlist model [Proven]
 
 ### 3.1 Selection → play chain
 Play-script line → up to 8 **actions** (`gme_parse_actions` @0x080354c8; **clamped to 8/line**,
@@ -167,25 +160,24 @@ count @0x081da0a8) each dispatched to `gme_exec_command`, whose play cases resol
 and call **`play_media` @0x080ab7b4** (media-pipeline.md §2). Media (offset,size) come from:
 
 - **media table** hdr@0x04 — 8-byte entries `{u32 offset, u32 size}`. `gme_parse_media_offsets`
-  @0x08035338 resolves `playlist[i]` → table entry → (offset@0x081da4e4, size@0x081da564). [P]
+  @0x08035338 resolves `playlist[i]` → table entry → (offset@0x081da4e4, size@0x081da564). [Proven]
 - **playlist** — `gme_parse_playlist` @0x080353e8 reads a u16 count + u16 media-index list
-  (@0x081da126). **Product/game-type 12 (0x0C) carries a SECOND playlist** (count @0x081da124,
-  list @0x081da166) resolved by `gme_parse_media_offsets2` @0x08035b8c. ⚠️ the dual-playlist for
-  type 12 was not previously documented.
+  (@0x081da126). A **SECOND playlist** (count @0x081da124, list @0x081da166) is resolved by
+  `gme_parse_media_offsets2` @0x08035b8c; it is keyed on the current **product id** (`iVar19 =
+  *DAT_08036738` == 0x0C), not on game type 12. tttool has no entry for this second playlist.
 
 ### 3.2 The six play-modes (all in view)
 | mode | opcode / path | selection |
 |---|---|---|
 | single | 0xFFE8 Play n | `playlist[n]` |
-| round-robin | 0xFFE0 | `playlist[dispatch_ctr%len]` |
+| round-robin | 0xFFE0 `P*` | `playlist[dispatch_ctr%len]` over the **entire line playlist** (all files in the line, not FFE0's own args) |
 | random | 0xFC00 | `playlist[heartbeat%(range)+b]` |
-| play-all fwd | 0xFFE1 / mode-1 loop in dispatch | entries 0..len advancing on audio-stop |
+| play-all fwd | 0xFFE1 `PA*` / mode-1 loop in dispatch | the **entire line playlist**, entries 0..len advancing on audio-stop |
 | play-all from hi | 0xFB00 / mode-2 | entries hi..len |
 | power-on jingle | hdr@0x71 → `FUN_08077230` @0x08077230 | dedicated power-on playlist, played at mount |
 
-`FUN_08077230` (mislabelled "gme_media_xor_key_setup" in book-discovery-and-load.md §6 —
-**correction: it is the power-on-sound playlist parser+player**, hdr@0x71, matching GME-Format
-§0x71). The XOR key setup is separate (see §4).
+`FUN_08077230` @0x08077230 is the **power-on-sound playlist parser+player** (hdr@0x71, matching
+GME-Format §0x71). The XOR key setup is separate (see §4).
 
 ### 3.3 Codec dispatch (media-pipeline.md §4, unchanged — complete)
 `medialib_detect_codec` @0x080ff3d8 sniffs the first 0x40 **decrypted** bytes; codec ids:
@@ -195,12 +187,12 @@ Decoders present: `ima_adpcm_decode`, Ogg/Vorbis, FLAC, `akoid_decode_frame`. **
 decryption**: all reads XOR through `fs_read_xor_decrypt`, media magic derived to **0xAD**
 (pass-through {0x00,0xFF,0xAD,0x52}).
 
-**Media completeness: COMPLETE.** New items catalogued: type-12 dual playlist, the 8-action clamp,
+**Media completeness: COMPLETE.** Catalogued: the product-0xC second playlist, the 8-action clamp,
 hdr@0x71 power-on playlist parser identity, hdr@0x8C repeat-flag table (§4).
 
 ---
 
-## 4. Table structures — GME header + all tables [P]
+## 4. Table structures — GME header + all tables [Proven]
 
 `gme_parse_header` @0x08035d20 reads the header field-complete. Confirmed layout (all cited to the
 sequential `fs_read`s + the DAT pools, cross-checked with tttool GME-Format.md):
@@ -214,12 +206,12 @@ sequential `fs_read`s + the DAT pools, cross-checked with tttool GME-Format.md):
 | 0x10 | game table | @0x081da1b0; `FUN_08034cbc` game-type read | ✅ |
 | 0x14 | product id | @0x081da08c (current product); also ctx+0x16/+0x4a6 | ✅ |
 | 0x18 | register-init offset | @0x081da1b4; `gme_reset_registers` | ✅ |
-| 0x1C | **raw XOR byte** | → ctx+0x134 → **table lookup @0x080381da** → key @0x08121a80 | ✅ **NEW: table resolved** |
+| 0x1C | **raw XOR byte** | → ctx+0x134 → **table lookup @0x080381da** → key @0x08121a80 | ✅ (table resolved, §4.1) |
 | 0x20 | CHOMPTECH version string | (length-prefixed; not consumed) | ✅ |
 | 0x59..0x5F | language field | `gme_check_language` @0x08033fb0 vs pen lang @0x08121ec0 | ✅ |
-| 0x60 | **additional media table** | @0x081da1b8; used by native game handlers (0x0807ba04 etc.) | ✅ (was "unknown" in tttool) |
+| 0x60 | **additional media table** | @0x081da1b8; used by native game handlers (0x0807ba04 etc.) | ✅ (tttool marks it unknown) |
 | 0x71 | power-on-sound playlist | `FUN_08077230` (§3.2) | ✅ |
-| 0x8C | **media-flag table** | `play_media` "VoiceNumberNeedRep" repeat-suppression | ✅ **NEW: partial resolve** |
+| 0x8C | **media-flag table** | `play_media` "VoiceNumberNeedRep" repeat-suppression (mechanism resolved; exact per-title semantics [Inferred]) | ✅ |
 | 0x94 | special-OID list | 20×u16 → cover-OID selectors @0x081da714/716/718… | ✅ |
 | 0x98 | additional game-binaries table (ZC3202N) | → state 67 | ◐ path known |
 | 0xA4 | tail flag (1 byte) | @0x081da088 | ✅ |
@@ -249,7 +241,7 @@ table; a re-implementation can extract it directly from PROG.bin @ file-offset `
 
 ---
 
-## 5. Multi-book / product switching [P]
+## 5. Multi-book / product switching [Proven]
 
 Fully documented in `book-discovery-and-load.md`. Summary of switch mechanisms:
 - **First load**: cover-tap → classifier posts 0x104A+0x1058 → book_mount(12) → book(13); **second
@@ -268,12 +260,12 @@ Fully documented in `book-discovery-and-load.md`. Summary of switch mechanisms:
 
 | aspect | verdict |
 |---|---|
-| Action opcodes | ✅ complete (2 new: 0xFFA1, 0xFEFF-documented) |
+| Action opcodes | ✅ complete (incl. 0xFFA1 coin-flip, 0xFEFF timer-cancel) |
 | Conditionals | ✅ complete (0xFFFC alias noted) |
 | Game-type dispatch | ✅ complete for script types; ◐ embedded-binary (states 67/69) carries its own ARM blob |
-| Media table / playlist / play-modes | ✅ complete (type-12 dual playlist newly noted) |
+| Media table / playlist / play-modes | ✅ complete (product-0xC second playlist included) |
 | Codec dispatch | ✅ complete (WAV/PCM/ADPCM/AMR/FLAC/Ogg/video/voice-0x13) |
-| Header + all tables | ✅ field-complete (XOR LUT + 0x8C flag table newly resolved) |
+| Header + all tables | ✅ field-complete (XOR LUT + 0x8C flag table resolved) |
 | Multi-book / switching | ✅ complete |
 | XOR decryption | ✅ complete (LUT @0x080381da extracted) |
 
@@ -288,7 +280,7 @@ tables are fully reversed and functionally verified.
    that blob and drives the pen through the `system_api` vtable.
 2. **Codec-0x13 system-voice** (media-pipeline §6): a special voice decode path distinct from the
    ordinary media codecs.
-3. **Undocumented-but-handled minors** (0xFFA1, 0xFFFC, type-12 dual playlist): the *firmware*
+3. **Undocumented-but-handled minors** (0xFFA1, 0xFFFC, product-0xC second playlist): the *firmware*
    handles them; only external re-implementations (tttool) lack them — no risk to running on the
    real firmware.
 
@@ -298,28 +290,31 @@ table, or media type.
 
 ---
 
-## 7. Corrections / new findings folded in
+## 7. Findings beyond tttool's GME-Format.md
 
-- **NEW**: raw→real XOR is a **256-byte LUT @0x080381da**, `real = LUT[hdr@0x1C]`, `LUT[0x39]=0xAD`
+- The raw→real XOR is a **256-byte LUT @0x080381da**, `real = LUT[hdr@0x1C]`, `LUT[0x39]=0xAD`
   (resolves tttool GME-Format.md §165 "unknown algorithm or lookup table").
-- **NEW**: header **0x8C** = media-flag ("VoiceNumberNeedRep") table — `play_media` repeat-suppression.
-- **NEW**: GME **type-12** carries a second playlist (`gme_parse_media_offsets2` / `gme_parse_playlist`
-  second half).
-- **NEW / undocumented opcodes**: **0xFFA1** (coin-flip play, resolved 2026-07-20 — see §1), **0xFFFC** (Eq-alias condition).
-- **CORRECTION**: `FUN_08077230` @0x08077230 is the **power-on-sound playlist parser+player**
-  (hdr@0x71), not the media-XOR-key setup as labelled in book-discovery-and-load.md §6. The XOR key
-  setup is the inline `*0x08121a80 = LUT[ctx+0x134]` in `gme_parse_header` / `gme_oid_dispatch`.
-- **CONFIRM**: `FUN_08034da0` opcode switch has no unreached/unnamed case; `gme_parse_actions`
-  clamps to 8 actions/line.
+- Header **0x8C** = media-flag ("VoiceNumberNeedRep") table — `play_media` repeat-suppression.
+- A **second playlist** (keyed on product id 0x0C) is resolved by `gme_parse_media_offsets2` /
+  `gme_parse_playlist` second half.
+- Undocumented opcodes handled by the firmware: **0xFFA1** (coin-flip play — see §1), **0xFFFC**
+  (Eq-alias condition).
+- `FUN_08077230` @0x08077230 is the **power-on-sound playlist parser+player** (hdr@0x71). The XOR
+  key setup is separate: the inline `*0x08121a80 = LUT[ctx+0x134]` in `gme_parse_header` /
+  `gme_oid_dispatch`.
+- `FUN_08034da0` opcode switch has no unreached/unnamed case; `gme_parse_actions` clamps to 8
+  actions/line.
 
 ---
 
-**Correction (2026-07-19, game-type dispatch cross-check):** the "dual playlist when the
-selector equals 0x0C" note in §3.1 is keyed on the current **product id** (`iVar19 =
-*DAT_08036738`), **not** on game type 12 — game types 11–15 are unhandled by the dispatch
-cascade (silent fall-through, like type 0). Further verified details from the same
-cross-check: dispatch is on the **low byte** of the record's type word; types 1/3/5 have
-**no** internal branch in the shared state-14 engine (true aliases; only `type==2`
-hint-chain and `type==10` endless branch); type 16 has a product-id-2 variant (state 60,
-fixed 8-question quiz over the same record layout). See also gme-subtype-parameters.md §0
-addendum and the game-type discussion on nomeata/tip-toi-reveng PR #2.
+## 8. Notes on the dispatch cascade
+
+- The second playlist described in §3.1 is keyed on the current **product id** (`iVar19 =
+  *DAT_08036738` == 0x0C), **not** on game type 12. Game types 11–15 are unhandled by the dispatch
+  cascade (silent fall-through, like type 0).
+- Dispatch is on the **low byte** of the record's type word.
+- Types 1/3/5 have **no** internal branch in the shared state-14 engine (true aliases); only
+  `type==2` (hint-chain) and `type==10` (endless branch) differ.
+- Type 16 has a product-id-2 variant (state 60, fixed 8-question quiz over the same record layout).
+
+See also gme-subtype-parameters.md §0 and the game-type discussion on nomeata/tip-toi-reveng PR #2.

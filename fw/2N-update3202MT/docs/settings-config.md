@@ -1,7 +1,7 @@
 # Settings & config — what the 2N (MT) pen persists, where, and how
 
 > Static decomp analysis of the settings/config subsystem (unified base **0x08009000**). Evidence
-> tags: **[P]** = read from decomp/disasm/literal pools/hardware capture, **[I]** = inferred (reason
+> tags: **[Proven]** = read from decomp/disasm/literal pools/hardware capture, **[Inferred]** = inferred (reason
 > given). Companions: `pmu-power-management.md` (buttons/auto-off), `statechart-full-map.md` (states),
 > `book-discovery-and-load.md` (`.lst` cache, language check), `codepage-what-is-it.md` (GBK),
 > `audio-output-hw.md` (audio ring / Q10 gain), `hardware-external-refs.md` (FM24C02B).
@@ -13,18 +13,18 @@
 1. **The pen has almost no user settings.** The only user-adjustable setting is **volume**
    (buttons → index 0..5), and it is **RAM-only — reset to 3 at every boot**. Language is the
    compile-time constant `"GERMAN"`; codepage is fixed GBK; the ~30 s standby auto-off is a
-   **hardcoded literal 300**; there is **no settings menu state** anywhere in the 70-state chart. [P]
+   **hardcoded literal 300**; there is **no settings menu state** anywhere in the 70-state chart. [Proven]
 2. What the pen *does* persist across power cycles (all as **FAT files**, written only on the
    **graceful power-off path**, read at splash/book entry):
    - **`A:/SYSTEM/profile.dat`** (0x21B0 bytes, XOR-checksummed records) — of which this firmware
-     uses exactly **one record (@0xC): {power-off tick, tap-log counter, 1 byte}**. [P]
-   - **`B:/Questionstatus.txt`** — a 9×256 digit matrix of quiz "question already asked" flags. [P]
-   - **`B:/FLAG.bin`** — the firmware-update resume marker (presence = flag). [P]
+     uses exactly **one record (@0xC): {power-off tick, tap-log counter, 1 byte}**. [Proven]
+   - **`B:/Questionstatus.txt`** — a 9×256 digit matrix of quiz "question already asked" flags. [Proven]
+   - **`B:/FLAG.bin`** — the firmware-update resume marker (presence = flag). [Proven]
    - Append-only telemetry: **`A:/Firmware log file.bin`** + **`B:/.tiptoi.log`** (header =
-     serial + fw version + `"GERMAN"` + `"3202N"`, then (product-id, OID) u16 pairs per tap). [P]
+     serial + fw version + `"GERMAN"` + `"3202N"`, then (product-id, OID) u16 pairs per tap). [Proven]
 3. **The FM24C02B EEPROM stores no pen settings.** Every I²C transaction in the firmware targets
    device **0x94** (the dormant Anyka on-SoC sensor config); no 0xA0/0xA1 (24C02) traffic exists.
-   The EEPROM hangs off the Sonix OID decoder's private bus (decoder config), invisible to the SoC. [P]
+   The EEPROM hangs off the Sonix OID decoder's private bus (decoder config), invisible to the SoC. [Proven]
 
 ---
 
@@ -34,7 +34,7 @@
 |---|---|---|---|---|
 | **Volume (master)** | u8 index `@0x081db904` | 0..5 via buttons (table has 7 slots 0..6); **boot default 3**; healthy-boot splash sets 2 | **NO** — RAM only | buttons (0x105F codes 5/6), GME opcodes 0xFEE0–0xFEE7, firmware itself |
 | Volume (secondary, per-player) | `game_ctx+0x11` → player`+0x2b` | 0..0x10; **boot default 8** | NO | `aud_player_set_volume` 0x080abb60 — only static caller is `app_init_main` |
-| **Language** | `g_pen_language` `@0x08121ec0` = `"GERMAN"` | compile-time `.data` constant | n/a (constant) | **never written** — all 5 literal refs are reads (gme_check_language + 4 log-header copies) [P] |
+| **Language** | `g_pen_language` `@0x08121ec0` = `"GERMAN"` | compile-time `.data` constant | n/a (constant) | **never written** — all 5 literal refs are reads (gme_check_language + 4 log-header copies) [Proven] |
 | Codepage | G0 selector = 0 → GBK | fixed | n/a | see `codepage-what-is-it.md` (no writer) |
 | **Auto-off timeout** | u16 idle counter `@0x081da07c` | threshold = **literal `300`** in `standby_handler` 0x08051b0c | **NO** — hardcoded, not configurable | — |
 | Quiz question-status | `game_subctx+0x4bc` (9×0x100 bytes) | 0/1 flags per question | **YES** → `B:/Questionstatus.txt` | quiz games (0x0809d3c4 marks, 0x0809d858 clears a row) |
@@ -52,13 +52,13 @@ caller** — dead vendor calendar), `a:/*.lst` (per-boot caches), `A:/African.fe
 (lists the languages contained in the **update package**; used only by `fw_update_cleanup` to pick
 the update-voice folder `A:/Language/<lang>/…` by matching the `.upd` filename — not a pen setting),
 `B:/App_Demo.bin` (path handed to GME separate-binary sysapi), `B:/Prodtest.txt`, `B:/TestFile/*`
-(production test). [P]
+(production test). [Proven]
 
 ---
 
 ## 2. Storage — where and how (Q2)
 
-### 2.1 Verdict: FAT files on A:/B: only. No EEPROM, no raw-NAND settings area. [P]
+### 2.1 Verdict: FAT files on A:/B: only. No EEPROM, no raw-NAND settings area. [Proven]
 
 - **EEPROM:** the bit-banged I²C library (`i2c_gpio_init` 0x080f355c, `i2c_start` 0x080f34e8,
   `i2c_send_byte` 0x080f3460, `i2c_write_bytes` 0x080f35b4, read fns 0x080f37c8/0x080f3754/
@@ -67,7 +67,7 @@ the update-voice folder `A:/Language/<lang>/…` by matching the `.upd` filename
   sensor types 1/3; this build is type 0). No caller passes 0xA0/0xA1. The FM24C02B belongs to the
   SN9P601 OID decoder's own 2-wire bus (its boot config), never to the SoC. [P corpus grep]
 - **NAND:** no settings block outside the FAT volumes; everything below goes through `fs_open`/
-  `fs_read`/`fs_file_write` on drive letters. [P]
+  `fs_read`/`fs_file_write` on drive letters. [Proven]
 
 ### 2.2 `A:/SYSTEM/profile.dat` — the vendor profile store (0x21B0 bytes)
 
@@ -78,7 +78,7 @@ Module: `profile_read_record` 0x0804bb20 / `profile_write_record` 0x0804b8cc /
 **Self-healing container:** `profile_write_record` opens the file; if missing **or size ≠ 0x21B0**
 it ensures `A:/SYSTEM/` exists (`FUN_080ad6d8`), recreates the file and writes the full 0x21B0
 default image from `profile_init_defaults`. `profile_read_record` does the same on open failure /
-wrong size, and **re-defaults + rewrites the single record when its XOR checksum fails**. [P]
+wrong size, and **re-defaults + rewrites the single record when its XOR checksum fails**. [Proven]
 
 Record map (file offset → length; each record ends in an XOR-of-fields checksum byte):
 
@@ -100,25 +100,25 @@ tiptoi uses only the @0xC record. **Static callers of the pair: exactly two.** [
   `subctx+0xcc := saved tick`, `subctx+0x13c := saved counter`, `subctx+0x140 := saved byte`; if
   `saved_tick > current_tick` it converts the saved tick to a calendar date (`FUN_080ad188` —
   div 60/60/24 + leap-year day walk) into a stack buffer whose result is **discarded** (vestigial
-  RTC continuation). [P]
+  RTC continuation). [Proven]
 - **Write at power-off:** `FUN_0804be7c` ← `power_off_or_charge_park` 0x08050a8c (the graceful
   path: power button code 8 / battery-final 0x1062 route). **The standby auto-off and `sys_reset`
-  paths do NOT save** — they go straight to GPIO15=0. [P]
+  paths do NOT save** — they go straight to GPIO15=0. [Proven]
 
 ### 2.3 `B:/Questionstatus.txt` — quiz progress (persisted game state)
 
-- Format: 9 rows × 256 chars `'0'`/`'1'` (with 2 separator bytes after every 32), ASCII. [P]
+- Format: 9 rows × 256 chars `'0'`/`'1'` (with 2 separator bytes after every 32), ASCII. [Proven]
 - **Read at book entry:** `FUN_0804b708` (path @0x080b0012) ← book(13) entry 0x080345cc; fills
-  `subctx+0x4bc + row*0x100 + col` with 0/1. Missing file → returns 0, matrix stays zeroed. [P]
+  `subctx+0x4bc + row*0x100 + col` with 0/1. Missing file → returns 0, matrix stays zeroed. [Proven]
 - **Write at graceful power-off:** `FUN_0804b7d4` (its own path copy @0x080b003e) ←
-  `power_off_or_charge_park` — deletes and rewrites the whole matrix. [P]
+  `power_off_or_charge_park` — deletes and rewrites the whole matrix. [Proven]
 - Consumers: the ask-question quiz family — `0x0809d3c4` skips/marks used questions
-  (`==1` loop → set 1), `0x0809d858` clears a row when exhausted. [P]
+  (`==1` loop → set 1), `0x0809d858` clears a row when exhausted. [Proven]
 
 ### 2.4 The telemetry log files (identity header, not settings)
 
 `standby_entry` 0x080511a0 opens both at every standby entry (handles kept open globally;
-confirmed valid on a hardware RAM capture [P]):
+confirmed valid on a hardware RAM capture [Proven]):
 
 | file | path global | handle global |
 |---|---|---|
@@ -130,18 +130,18 @@ On create (or when the stored identity mismatches), it writes a 0x40-byte header
 +0x10 fw version `"N0038MT"` (10 B, from the PROG header @0x08009000), +0x20 language `"GERMAN"`
 (10 B, from @0x08121ec0), +0x30 `"3202N"` (10 B, @0x080b0828)**. On open it validates serial
 (8 B @0) + fw version (5 B @0x10) and recreates on mismatch — i.e. the log resets when the
-firmware is updated or the file moved between pens. [P]
+firmware is updated or the file moved between pens. [Proven]
 
 Body: every decoded tap appends **u16 current-product-id (`*0x081da08c`) + u16 OID** via
 `FUN_0803444c` (A: log) / `FUN_080344b8` (B: log); the record counter is `subctx+0x13c`
-(the value persisted in `profile.dat`, `% 30` bookkeeping in the writers). [P]
+(the value persisted in `profile.dat`, `% 30` bookkeeping in the writers). [Proven]
 
 ### 2.5 `B:/FLAG.bin` — update-resume marker
 
 Created by the fw-update path (ref 0x08052298 in the state-2 machinery); at `splash_entry`
 (ref 0x0804c244): if it exists → close, **delete**, set `game_ctx+0x24 = 1`, play voice 0x19;
 `standby_handler` sees `+0x24 == 1` and posts 0x1058 (auto-reopen book after an update). Presence
-*is* the value. [P]
+*is* the value. [Proven]
 
 ---
 
@@ -160,13 +160,13 @@ TA[4] = `button_dispatch_105f` 0x0800a9c8 (works in every state, no menu needed)
 
 Feedback (when idle enough — a chain of "nothing critical playing" gates): stops current audio,
 then plays **voice 0x15** (normal blip) or **voice 0x16** when the limit was hit (idx==5 after up,
-idx==0 after down), and sets `subctx+0x54=1` so held/repeated presses keep beeping. [P]
+idx==0 after down), and sets `subctx+0x54=1` so held/repeated presses keep beeping. [Proven]
 
 ### 3.2 Index → DAC gain
 
 `volume_get` 0x0800b6a4 reads **u8 `@0x081db904`**. The setter everything funnels through is
-**`sm_set_sound_profile(level, mode)` 0x0800b65c** (mis-named `sm_set_state` historically): clamp
-level to [0,6], look up **u16 gain table @0x0800b9e4 = {0x18, 0x60, 0xA8, 0x108, 0x138, 0x180, 0}**,
+**`sm_set_sound_profile(level, mode)` 0x0800b65c** (also labelled `sm_set_state` in the statechart
+docs): clamp level to [0,6], look up **u16 gain table @0x0800b9e4 = {0x18, 0x60, 0xA8, 0x108, 0x138, 0x180, 0}**,
 call `FUN_0802265c(gain)`, store the level byte at 0x081db904. [P, table bytes read from PROG.bin]
 
 `FUN_0802265c` (gain commit): optionally rescales by the current sample-rate state
@@ -174,7 +174,7 @@ call `FUN_0802265c(gain)`, store the level byte at 0x081db904. [P, table bytes r
 singleton** `*0x08008d2c` (object 0x08008d30) fields **+0x14** (and +0x18 unless a fade flag
 +0x27 is set) — the **Q10 volume multiplier** applied per sample by `ao_mix_write_ring`
 (`sample*vol >> 10`, see `audio-output-hw.md`). So user volume 5 = 0x180/0x400 = 37.5 % of
-unity; default 3 = 0x108/0x400 ≈ 26 %; slot 6 (gain 0) = true mute, reachable **only** via GME. [P]
+unity; default 3 = 0x108/0x400 ≈ 26 %; slot 6 (gain 0) = true mute, reachable **only** via GME. [Proven]
 
 ### 3.3 Who sets it when
 
@@ -193,15 +193,15 @@ player`+0x2b` = the secondary 0..0x10 volume (default 8; `aud_player_set_volume`
 only writer and has no caller besides `app_init_main`). Because **every** playback goes through
 `play_media_setup` (e.g. `fwl_play_voice_by_id` 0x080ab9ac → `play_media_setup`), which re-caches
 the *current* `volume_get()` before `aud_player_play`, a button/GME volume change sticks across
-subsequent playbacks — the `+0x29` cache never resurrects a stale value. [P]
+subsequent playbacks — the `+0x29` cache never resurrects a stale value. [Proven]
 
 Side note on the same dispatcher: the **power-off button** branch (code 8, sub 1) is gated on the
 boot-phase byte `game_ctx+0x1d ∈ {2, 4}`. `+0x1d` is a generic phase marker (splash entry =1, splash
 healthy path / book entry / standby entry =2, 0x0805102c =8), **not** a healthy-boot discriminator.
-The volume branches are not phase-gated. [P]
+The volume branches are not phase-gated. [Proven]
 
 **No persistence:** the four literal-pool references to 0x081db904 are all inside the volume
-module (0x0800b65c/6a4/6b4/6e0) — nothing saves or restores it. Power-cycle resets volume to 3. [P]
+module (0x0800b65c/6a4/6b4/6e0) — nothing saves or restores it. Power-cycle resets volume to 3. [Proven]
 
 ### 3.4 Live-pen RAM cross-check
 
@@ -222,7 +222,7 @@ repository) is consistent with the static model on every settings-relevant field
 default. Since the healthy splash path overrides to 2, the observed 3 means either (a) the quiet
 low-battery boot path ran (splash `(2,0)` skipped, default 3 survives), or (b) a healthy boot
 followed by one volume-up press (2→3) / a GME 0xFEE3 opcode. RAM alone cannot discriminate (a) vs
-(b), but in every case the value is session-local, **not restored from storage**. [P]
+(b), but in every case the value is session-local, **not restored from storage**. [Proven]
 
 ---
 
@@ -234,10 +234,10 @@ mode. Volume and power are handled *orthogonally* by the state-9 global pre-hand
 selector UI (constants), auto-off has no UI (literal 300). The UTF-16 resource strings
 `"MenuSetting"` (0x080b3cce, 0x080c8f36), `"Settings"` (0x080b4792), `"Configuración…"`
 (0x080d2b02) have **zero literal-pool references** — dead vendor SDK menu resources from the
-media-player lineage (same lineage as the unused profile.dat records and the dead calendar). [P]
+media-player lineage (same lineage as the unused profile.dat records and the dead calendar). [Proven]
 
 The only "settings-like" OIDs are GME content: control opcodes 0xFEE0–0xFEE7 (volume) inside
-scripts, i.e. printed volume-control fields in books work by script, not by a firmware menu. [P]
+scripts, i.e. printed volume-control fields in books work by script, not by a firmware menu. [Proven]
 
 ---
 
@@ -263,7 +263,7 @@ scripts, i.e. printed volume-control fields in books work by script, not by a fi
 | 0x080ad6d8 | `fs_dir_ensure` | mkdir-if-missing (used for A:/SYSTEM/) |
 | globals | | `g_volume_idx` @0x081db904 (u8 0..6, RAM-only); `g_pen_language` @0x08121ec0 (`"GERMAN"`, const); `g_taplog_handle_A` @0x08121a84; `g_taplog_handle_B` @0x08121e6c; `subctx+0xcc` last-off tick; `subctx+0x13c` tap-log counter; `subctx+0x140` persisted byte (unknown, write-only); `subctx+0x4bc` question matrix; `subctx+0x54` vol-feedback latch; `game_ctx+0x11` secondary volume; `game_ctx+0x24` update-resume flag |
 
-Voice IDs: 0x15 volume blip, 0x16 volume limit, 0x19 update-resume, 0x14 power-off (pmu doc). [P]
+Voice IDs: 0x15 volume blip, 0x16 volume limit, 0x19 update-resume, 0x14 power-off (pmu doc). [Proven]
 
 ---
 

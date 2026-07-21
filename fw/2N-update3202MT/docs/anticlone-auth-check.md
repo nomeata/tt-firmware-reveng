@@ -111,8 +111,8 @@ data bursts at power-on"). [Proven bit-bang; pad mapping Inferred from the ZC90B
 
 So the genuine ZC90B is expected to apply the **same table transform** the firmware pre-computed
 (the lookup tables in ROM are the shared secret) and echo it back. The nonce (`rng_below`) makes it
-a live challenge, not a replayable fixed handshake. [Proven mechanics; "the tables are the shared
-secret / chip mirrors the transform" Inferred]
+a live challenge, not a replayable fixed handshake. [Proven mechanics; the tables are the shared
+secret, and the chip's response transform is derived and verified in `zc90b-model.md` §2d]
 
 **Else branch** (`b3!=0` && `*DAT_0804ce94!=0`): a nested **brute-force scan** (uVar13 0..99 ×
 uVar10 0..2) that always clears `akoid_buf[0xb4]=0` and breaks on first pass — a
@@ -161,7 +161,7 @@ without a correct responder on GPIO 5/10 the pen powers itself off.
 
 | addr | suggested name | role |
 |---|---|---|
-| **0x0804c47c** | `anticlone_zc90b_verify` (was `FUN_0804c47c`) | ZC90B GPIO10-clk/GPIO5-data bit-banged challenge/response; nonce+table expected bytes; sets `akoid_buf[0xb4]` 0=pass/1=fail. Else-branch = brute-force provisioning scan. |
+| **0x0804c47c** | `anticlone_zc90b_verify` | ZC90B GPIO10-clk/GPIO5-data bit-banged challenge/response; nonce+table expected bytes; sets `akoid_buf[0xb4]` 0=pass/1=fail. Else-branch = brute-force provisioning scan. |
 | **0x0804cecc** | `fwupdate_verify_image` (existing) — really the **splash default handler**; top block (`b3==0`) is the **anti-clone gate**: run verify, on fail GPIO15=0 + spin (power-off); on pass post 0x1014→standby. Lower body = fw-update apply flow (soft auth at L137). |
 | **0x0803d094** | `lowbatt_splash_post` | posts continuation events only when on cable (`game_ctx[0x1e]∈{1,2}`); no-op on battery. |
 | `akoid_buf[0xb4]` | `anticlone_verify_failed` | 1 = ZC90B mismatch (→ power-off on quiet boot); 0 = ok. |

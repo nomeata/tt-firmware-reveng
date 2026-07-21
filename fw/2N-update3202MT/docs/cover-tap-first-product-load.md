@@ -8,7 +8,7 @@
 > The headline: the first product mounts on the **second physical tap** of its OID — tap 1 opens
 > the book, tap 2 mounts the product. All addresses = unified runtime base **0x08009000**
 > (`data/PROG.bin` flat load; file off = addr − 0x08009000). Nandboot HAL @0x08000000
-> (`data/nandboot.bin`). **[P]** = read from decomp/disasm/PROG bytes (cited); **[I]** = inferred.
+> (`data/nandboot.bin`). **[Proven]** = read from decomp/disasm/PROG bytes (cited); **[Inferred]** = inferred.
 > Companions: `book-discovery-and-load.md` (the `.lst`/mount internals), `statechart-full-map.md`,
 > `oid-classifier-logic.md`, `oid-sensor-read-protocol.md`.
 
@@ -71,7 +71,7 @@ event. The state-9 mapper (0x0800a914) matches `0x1060` → status 1, result 5 �
 
 ### 1.1 The first-load gate
 
-Disasm 0x080380e4-0x08038118 [P]:
+Disasm 0x080380e4-0x08038118 [Proven]:
 
 ```
 80380e4: ldrb r1,[r0,#0xb3]  ; akoid_buf[0xb3]
@@ -113,13 +113,13 @@ The state bytes' provenance:
 
 - **`akoid_buf[0]` (event-pending)** is set to 1 by the nandboot OID timer cb `0x080057cc`
   immediately before it posts 0x1060 (`oid-sensor-read-protocol.md` §5.1). A tap delivered through
-  the authentic sensor protocol always has it set. [P]
+  the authentic sensor protocol always has it set. [Proven]
 - **`game_ctx[0x1d]==2`** = the fresh-standby marker, set by `standby_entry` (0x080511a0 L31) and
-  splash entry/exit; flipped to **8** by `standby_handler`'s idle path (0x08051b0c L123). [P]
+  splash entry/exit; flipped to **8** by `standby_handler`'s idle path (0x08051b0c L123). [Proven]
 - **`akoid_buf[0x21]==0xff`** = "no product loaded", set by `akoid_init` (0x080eeb20 L75:
   `pcVar7[0x21]=-1`); set back to 0xff only in **content states** — book exit `FUN_080348a8`,
   the per-game OID-index loaders `FUN_0808063c`/`FUN_08078474`/`0x08084e64` — never at standby.
-  Cleared to 0 by book entry `book_state_entry` (L43). [P]
+  Cleared to 0 by book entry `book_state_entry` (L43). [Proven]
 - **`*0x08008c0d`** = the battery/content-stage byte (`akoid_init` sets 0; battery-final sets 0xff).
 
 ### 1.2 The two `akoid_buf[0]` exits — why the return value is everything
@@ -155,7 +155,7 @@ set `[0x21]=0`), runs two no-op `FUN_080afd30` substitute-event calls (slots `ga
 0x081da01c/1e, **0 in the GME flow**), then tests `game_ctx[0x36]`. `[0x36]` is forced to 0 at
 classifier entry (0x08037cfc) and nothing in the GME flow sets it → **`[0x36]==0` → branch to
 0x0803818c → return 1, `akoid_buf[0]` untouched** → leaf `gme_oid_dispatch` runs with `akoid_buf[0]=1`.
-[P]
+[Proven]
 
 ---
 
@@ -183,7 +183,7 @@ Besides the classifier first-load branch, two other sites legitimately post `0x1
 
 1. `standby_handler` resume path — **`game_ctx[0x24]==1`**, set by splash entry when **`B:/FLAG.bin`**
    exists (post-update resume). [P 0x0804c1d4 L43, 0x08051b0c L129]
-2. `battery_monitor_tick` (0x080afd78) low-battery path (`DAT_080affd0=0x1058`). [P]
+2. `battery_monitor_tick` (0x080afd78) low-battery path (`DAT_080affd0=0x1058`). [Proven]
 
 The FLAG.bin resume is an **authentic real-pen behaviour**, not a corner case: a live pen RAM dump
 (obtained separately, hardware capture) has **`game_ctx[0x24]==1`** (offset 0x19C8), and splash's
@@ -255,15 +255,15 @@ These three are **game-runtime** switch-product machinery, *unrelated to the fir
   game uses to switch products without a physical tap. It is armed only by **`[0x58]=100`**, written
   exclusively by loaded-game OID handlers (11 sites in 0x0805xxxx-0x0807xxxx, each setting
   `[0x58]=100; [0x74]=[4]`). **Nothing promotes `[0x58]` 1→100** — the first load never uses the replay.
-  [P]
+  [Proven]
 - **`akoid_buf[0x132]`** is the game-runtime "additional-script / media-sequence" phase (2→3 at
   0x08036f7c; `==0x11` gates a media-loop branch; `==3` gates another). It is 0 in a product-less
-  book(13) and is only written by loaded-game code. Irrelevant to the first mount. [P]
+  book(13) and is only written by loaded-game code. Irrelevant to the first mount. [Proven]
 
 **Why the classifier writes the `[0x58]=1`/`[0x74]=42` latch at all** (0x08038148-0x08038154, gated on
 `*0x08008c0d != -1`): it seeds the *game-runtime* switch latch so the first mounted game, if it wants
 to hand off to another product, has `[0x74]` pre-populated. It is a courtesy seed, not the first-load
-trigger. [P]
+trigger. [Proven]
 
 ---
 
@@ -284,13 +284,13 @@ plus the `standby_handler` resume path — enough to bootstrap the self-perpetua
 is ever entered. `book_state_entry` (0x080345cc) sets **`akoid_buf[0x14]=1`** (L148) and arms a 100 ms
 *generic* timer with cb 0x08003994 (the heartbeat/0x30 poster), **not** the OID timer — it does not
 need to; the OID timer is already self-perpetuating and `[0x14]=1` re-enables decoding. So content taps
-can decode at book(13). [P]
+can decode at book(13). [Proven]
 
 **One robustness quirk:** a **failed** in-book product tap disables capture. `gme_oid_dispatch` executes
 **`akoid_buf[0x14]=0`** right before `gme_oid_to_playscript` (0x0803629c L817). If the mount fails (e.g.
 no matching `.gme` on the media), `[0x14]=0` leaves the self-re-arming timer firing but **skipping the
 decode** → no further 0x1060 posted until a product mounts. Once a product mounts successfully,
-decoding stays enabled for in-range content OIDs and the loop is stable. [P]
+decoding stays enabled for in-range content OIDs and the loop is stable. [Proven]
 
 ---
 

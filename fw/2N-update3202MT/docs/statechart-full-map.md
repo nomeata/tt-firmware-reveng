@@ -5,7 +5,7 @@
 > table** (@0x0800b8d4), the **transition-action table** (@0x0800b544), every state mapper, and the
 > event-posting corpus. All addresses are the unified runtime base **0x08009000** (Ghidra = runtime =
 > pen dump = `data/PROG.bin` flat load; file offset = addr − 0x08009000). Nandboot HAL @0x08000000
-> (`data/nandboot.bin`). Evidence tags: **[P]** = read directly from decomp/disasm; **[I]** = inferred
+> (`data/nandboot.bin`). Evidence tags: **[Proven]** = read directly from decomp/disasm; **[Inferred]** = inferred
 > from structure. Companion deep-dives: `statechart-framework.md`, `state8-to-13-transition.md`,
 > `autonomous-mount-state8.md`, `product-init-and-runtime-tables.md`.
 
@@ -55,17 +55,17 @@ that push mini-games, and the generic **GME game-type dispatcher** (types 16–2
 
 ## 1. The framework — dispatch, tables, and status semantics
 
-### 1.1 The active object (AO) @0x08008874 [P]
+### 1.1 The active object (AO) @0x08008874 [Proven]
 
 | field | offset | meaning |
 |---|---|---|
 | `*AO` | +0x00 | scratch: id of the state currently being dispatched (written by `sm_dispatch_event`) |
 | `AO+1` | +0x01 | "consumed" flag, cleared each hierarchy move; gates fallback re-run |
-| `AO+2` | +0x02 | =1: enable the `desc+8` unhandled-fallback path (`func_0x080076ac`) [P] |
-| `AO+4` | +0x04 | **stack DEPTH** (u16) — *not* the leaf id (live pen: depth 3) [P, corrects prior notes] |
+| `AO+2` | +0x02 | =1: enable the `desc+8` unhandled-fallback path (`func_0x080076ac`) [Proven] |
+| `AO+4` | +0x04 | **stack DEPTH** (u16) — *not* the leaf id (live pen: depth 3) [Proven] |
 | `AO+8` | +0x08 | cascade free-list head |
 | `AO+0xc` | +0x0c | cascade pending-list head |
-| `AO+0x14` | +0x14 | **state stack pointer** — `*(AO+0x14)` = current leaf id (live pen: 0x45 = state 69) [P] |
+| `AO+0x14` | +0x14 | **state stack pointer** — `*(AO+0x14)` = current leaf id (live pen: 0x45 = state 69) [Proven] |
 | `AO+0x18` | +0x18 | **descriptor table** = 0x08121d44 |
 | `AO+0x1c` | +0x1c | **event-action table** = 0x0800b8d4 |
 | `AO+0x20` | +0x20 | **transition-action table** = 0x0800b544 |
@@ -75,14 +75,14 @@ Each **descriptor** (0x10 bytes, rodata 0x080b0378–0x080b07b8) is
 `{+0 entry, +4 exit, +8 unhandled-fallback, +0xc mapper}`. `AO+0x14` is initialised by `app_init_main`
 to `func_0x08006ba4()` = **0x08007e80** (stack base in zero-init RAM) → **initial leaf = state 0**. [P mechanism / I zero]
 
-> **Naming correction [P]:** `sm_set_state` (0x0800b65c) is **NOT** the statechart-state setter. It
+> **`sm_set_state` (0x0800b65c) is the sound-profile setter, not the statechart-state setter [Proven].** It
 > clamps its arg to [0,6], indexes u16 table @0x0800b9e4 `{0x18,0x60,0xA8,0x108,0x138,0x180,0}`, calls
 > `FUN_0802265c` (rate math, clamp ≤0x400) and stores a mode/level byte at **0x081db904** — a 7-level
 > **system rate/sound-profile** setter (driven by GME opcodes FEE0–FEE7), unrelated to the AO leaf.
-> `app_init_main`'s `sm_set_state(3,0)` sets profile 3, not "initial leaf = standby". The real initial
-> leaf is state 0 (above).
+> `app_init_main`'s `sm_set_state(3,0)` sets profile 3, not the initial leaf. The initial leaf is
+> state 0 (above).
 
-### 1.2 `sm_dispatch_event` (0x080f2c78) — one (state,event) dispatch [P]
+### 1.2 `sm_dispatch_event` (0x080f2c78) — one (state,event) dispatch [Proven]
 
 The mapper returns `(result, status)`. `sm_dispatch_event` then acts on **status**:
 
@@ -98,18 +98,18 @@ The mapper returns `(result, status)`. `sm_dispatch_event` then acts on **status
 
 After any **3/4/5/6** hierarchy move, `event_loop_dispatch` (0x080f2b38) dispatches signal **0x1000** to
 the landing state's mapper and runs the resulting event-action — the state's **init/entry action**. On
-entry it calls `sm_state_entry` (`desc+0`); on exit `func_0x08007674` (`desc+4`). [P]
+entry it calls `sm_state_entry` (`desc+0`); on exit `func_0x08007674` (`desc+4`). [Proven]
 
-### 1.3 The pump and the three levels [P]
+### 1.3 The pump and the three levels [Proven]
 
 `FUN_0800b4a4` (app event pump) reads the input ring and calls `sm_dispatch_to_hierarchy` (0x080f2d70)
 per event, which dispatches **state 9 (func_0x08006bc8=9) → current leaf → state 10 (=10)**, with
-max-depth 11 (`func_0x08006bd8`). `func_0x08007620` pops the next cascade node each loop. `sm_set_state`'s
-old "initial leaf" reading is wrong; the pump/levels are the truth. [P]
+max-depth 11 (`func_0x08006bd8`). `func_0x08007620` pops the next cascade node each loop. The three
+dispatch levels are defined by the pump, not by `sm_set_state` (the sound-profile setter, §1.1). [Proven]
 
 ### 1.4 The action tables
 
-**transition-action table @0x0800b544** (status-1 targets; only state 9 emits status 1) [P]:
+**transition-action table @0x0800b544** (status-1 targets; only state 9 emits status 1) [Proven]:
 
 | idx | fn | role |
 |---|---|---|
@@ -154,28 +154,28 @@ fallback is a `bx lr` no-op unless noted.
 | **12** | `book_mount` | 0x080b0488 | 0x08034300 scan `B:/*.bnl` | 0x080343d4 close handle | 0x0804eaac | EA[16]=0x0803440c posts 0x1059 | 3 ←0x1058/0x1057/0x105a |
 | **13** | `book` | 0x080b0498 | 0x080345cc aud construct, voice 0x13 | 0x080348a8 `akoid[0x21]=0xff` re-arm gate | 0x0804eb08 `book_mode_handler` | EA[17]=0x0803629c `gme_oid_dispatch` | 12 ←0x1059 |
 
-**State-0 `root` mapper 0x0804e678** [P]: `0x1001→sib 1 (splash)`; `0x1002→sib 2 (fw_update)`; default→EA[1].
+**State-0 `root` mapper 0x0804e678** [Proven]: `0x1001→sib 1 (splash)`; `0x1002→sib 2 (fw_update)`; default→EA[1].
 EA[1] `root_action_boot_decide`: if pending update file exists **and** GPIO8==0 (on battery) → play
 prompt, post 0x1002; else post 0x1001.
 
-**State-1 `splash` mapper 0x0804e624** [P]: `0x1014→sib 3 (standby)`; `0x1048→pop`; `0x104a→pop-all`;
+**State-1 `splash` mapper 0x0804e624** [Proven]: `0x1014→sib 3 (standby)`; `0x1048→pop`; `0x104a→pop-all`;
 default→EA[0]=`fwupdate_verify_image`.
 
-**State-3 `standby` mapper 0x0804e884** [P]: `0x1058/0x1057/0x105a→push 12`; `0x1047→push 7`;
+**State-3 `standby` mapper 0x0804e884** [Proven]: `0x1058/0x1057/0x105a→push 12`; `0x1047→push 7`;
 `0x105d→push 8`; default→EA[9]=`standby_handler`. `standby_handler`: idle-mode (`game_ctx[0x1d]==8`)
 heartbeat counter → **inline hardware power-off at >300 ticks** (`sm_set_state(0,0)`, amp off, halt
 sequence — bypasses states 7/4); GPIO 0xB==1 → discovery + soft reboot; resume flag `game_ctx+0x24==1`
 → post 0x1058.
 
-**State-4 `system_off` mapper 0x0804e76c** [P]: `0x1003/0x1048→sib 1 (wake→splash)`; `0x100c→pop`;
+**State-4 `system_off` mapper 0x0804e76c** [Proven]: `0x1003/0x1048→sib 1 (wake→splash)`; `0x100c→pop`;
 default→EA[5] full peripheral power-down (`sys_reset`, clock/power-gate MMIO). Entered **only** from
 state 10 on 0x1062.
 
-**State-8 `usb_detect` mapper 0x0804e7c0** [P]: `0x1009→sib 6 (charging)`; `0x105c→sib 5 (usb_msc)`;
+**State-8 `usb_detect` mapper 0x0804e7c0** [Proven]: `0x1009→sib 6 (charging)`; `0x105c→sib 5 (usb_msc)`;
 `0x100c→pop (→3)`; default→EA[6]=`usb_connect_handler` (GPIO8/PMU settle logic). Fallback 0x08050ce8
 plays a one-shot cue (voice 0x7e) before the first settle tick.
 
-**State-9 `global_pre` mapper 0x0800a914** [P] — sets status **1** on match, else leaves 2 (pass to leaf):
+**State-9 `global_pre` mapper 0x0800a914** [Proven] — sets status **1** on match, else leaves 2 (pass to leaf):
 
 | event | TA[result] | behavior |
 |---|---|---|
@@ -186,17 +186,17 @@ plays a one-shot cue (voice 0x7e) before the first settle tick.
 | 0x105f | TA[4]=0x0800a9c8 | partial-OID feedback (posts 0x105b/0x1062) |
 | 0x1060 | TA[5]=0x08037cec `FUN_08037cec` | **cover classifier → post 0x104a+0x1058**; returns ≠0 on non-cover so book taps reach the leaf |
 
-**State-10 `global_post` mapper 0x0804e5fc** [P]: `0x1062→push state 4 (off)`; everything else status 2
+**State-10 `global_post` mapper 0x0804e5fc** [Proven]: `0x1062→push state 4 (off)`; everything else status 2
 → triggers the current leaf's `desc+8` fallback (auto-off hook + per-state fallback trigger).
 
-**State-11 `orphan_overlay`** [P]: **unreachable** — no mapper in all 70 produces result 11 with
+**State-11 `orphan_overlay`** [Proven]: **unreachable** — no mapper in all 70 produces result 11 with
 status 3/4. Vestigial USB/OID overlay. Mapper: `0x100c/0x105b→pop`, `0x104a→pop-all`, default→EA[3].
 
-**State-12 `book_mount` mapper 0x0804eaac** [P]: `0x1059→push 13`; `0x100c/0x1049→pop (→3)`;
+**State-12 `book_mount` mapper 0x0804eaac** [Proven]: `0x1059→push 13`; `0x100c/0x1049→pop (→3)`;
 `0x104a→pop-all`; default→EA[16]=`state12_default_action` (posts 0x1059 **unconditionally** — empty
 `B:/*.bnl` scan only sets an error flag; book(13) is entered regardless).
 
-**State-13 `book` mapper `book_mode_handler` 0x0804eb08** [P]: `0x100c/0x1049→pop (→12)`; `0x104a→pop-all`;
+**State-13 `book` mapper `book_mode_handler` 0x0804eb08** [Proven]: `0x100c/0x1049→pop (→12)`; `0x104a→pop-all`;
 default→EA[17]=`gme_oid_dispatch`; **plus 30 game-launch events, each `push`ing a sub-state** — the
 gateway to the whole game subtree:
 
@@ -214,9 +214,9 @@ gateway to the whole game subtree:
 `gme_oid_dispatch` (0x0803629c, EA[17]) reads the tapped OID's **GME game type** (`FUN_08034cbc`) and the
 **current product id** (`*DAT_08036738`, set by product-switch OIDs 0x300–0x3E7; each product has a cover
 OID — 0xC21↔6, 0x119A↔2, 0xF3F↔0xC, 0x713↔3, 0xB7B↔7, 0x89C↔10, 0xA34↔0xB, 0xCEA↔4, 0xA94↔9,
-0x18A2↔0x12, 0x162C↔0xE, 0x16C0↔0xF, 0x1A32↔0x13, 0x1DB2↔0x15) and posts the launch event above. [P]
+0x18A2↔0x12, 0x162C↔0xE, 0x16C0↔0xF, 0x1A32↔0x13, 0x1DB2↔0x15) and posts the launch event above. [Proven]
 
-**Game-type → state (type-9 = product-specific; others = generic GME engine)** [P]:
+**Game-type → state (type-9 = product-specific; others = generic GME engine)** [Proven]:
 
 | GME type | condition | event | state |
 |---|---|---|---|
@@ -246,7 +246,7 @@ OID — 0xC21↔6, 0x119A↔2, 0xF3F↔0xC, 0x713↔3, 0xB7B↔7, 0x89C↔10, 0x
 | 253 | — | 0x1039 | 31 |
 
 **Common game-leaf template** (states 14–29, 31, 33–49, 51–69 — mapper verified identical except the
-EA index K) [P]:
+EA index K) [Proven]:
 
 | event | outcome |
 |---|---|
@@ -262,13 +262,13 @@ amp-off + delay), `physpool_free`, clear mode byte. Every game defact calls `FUN
 **The three game hubs** (non-template mappers that push children):
 
 - **State 13 (book)** — the top hub; 30 launch events above.
-- **State 30 `game_hub`** (mapper 0x0804f17c) [P]: `0x1030→26, 0x1031→24, 0x1032→23, 0x1033→20,
+- **State 30 `game_hub`** (mapper 0x0804f17c) [Proven]: `0x1030→26, 0x1031→24, 0x1032→23, 0x1033→20,
   0x1034→25, 0x1035→27, 0x1036→22, 0x1037→21, 0x103a→28, 0x103b→29`; pop/pop-all; default→EA[31]. The
   built-in "Chomp" minigame selector; children 20–29 are grandchildren of book(13).
-- **State 32 `discovery_mode_hub`** (mapper 0x0804f950, product 7) [P]: `0x103c→38, 0x103d→40, 0x103e→36,
+- **State 32 `discovery_mode_hub`** (mapper 0x0804f950, product 7) [Proven]: `0x103c→38, 0x103d→40, 0x103e→36,
   0x103f→39, 0x1040→33, 0x1041→37, 0x1042→41, 0x1043→35, 0x1044→34`; pop/pop-all; default→EA[56]
   `discovery_mode` ("Enter Discovery Mode"). Children 33–41 are the nine `s_study_readinggame` leaves.
-- **State 50 `selection_board_mode`** (mapper 0x0804ed44, product-type 8) [P]: `0x1005→54, 0x1006→51,
+- **State 50 `selection_board_mode`** (mapper 0x0804ed44, product-type 8) [Proven]: `0x1005→54, 0x1006→51,
   0x1007→53, 0x1008→52, 0x1010→55, 0x1011→57, 0x1012→56`; pop/pop-all; default→EA[18]. Its defact drives
   `board_oid_selection_sm` (0x080610a4), a two-axis control-OID (0xe75–0xea6) selection FSM that posts
   the 0x1005–0x1012 sub-mode events. Children 51–57 are its grandchildren-of-book hub sub-games.
@@ -327,8 +327,8 @@ OID decoder 0x08005858 (0x1060), OID phase map 0x08003930 (0→0x1046, 1→0x105
 
 | id | meaning | source |
 |---|---|---|
-| 0x1000 | init-after-transition; dispatched to the new leaf after every hierarchy move; result's EA = the state's init action | `event_loop_dispatch` [P] |
-| 0x1001 / 0x1002 | boot-select: normal→0x1001→splash(1); update-pending & on-battery→0x1002→fw_update(2) | `root_action_boot_decide` EA[1] [P] |
+| 0x1000 | init-after-transition; dispatched to the new leaf after every hierarchy move; result's EA = the state's init action | `event_loop_dispatch` [Proven] |
+| 0x1001 / 0x1002 | boot-select: normal→0x1001→splash(1); update-pending & on-battery→0x1002→fw_update(2) | `root_action_boot_decide` EA[1] [Proven] |
 
 ### Queued events
 
@@ -365,8 +365,8 @@ OID decoder 0x08005858 (0x1060), OID phase map 0x08003930 (0→0x1046, 1→0x105
 | 0x101b | binary sub-game launch | `gme_oid_dispatch` + state-69 action | book/state-69 mapper → state 67 |
 | 0x101c | selection-board / product-switch | `gme_oid_dispatch` | book mapper → state 50 |
 
-**Notes.** The earlier "0x30xx GME software timers" phrasing is imprecise — GME timers post **0x30 with
-the slot handle as the arg**, not a 0x30xx id family (corpus scan found no 0x30xx posts). Dead
+**Notes.** GME timers post **0x30 with the slot handle as the arg**, not a 0x30xx id family (no 0x30xx
+post appears anywhere in the code). Dead
 vocabulary (mapper route but no static poster anywhere): **0x1003, 0x1047, 0x1054, 0x1057, 0x105a** —
 legacy transitions retained in the routers; dynamic script-fed posting of 0x1047/0x1048 from per-game
 config fields cannot be fully excluded.
@@ -438,8 +438,10 @@ depth, AO+0x14 = leaf.
 **Inferred / partial:**
 - Exact game identities for states 19, 31 (marked "partial") and the precise gameplay of several
   GME-type leaves (58–69) beyond "runs the GME script engine of type N".
-- The cover-OID **mode selector `0x081da08c`** must match for `FUN_08037cec` to fire; who seeds it at
-  product mount is not byte-traced (see `autonomous-mount-state8.md` §7.6).
+- The cover-OID **mode selectors** (`0x081da08c` mode, `0x081da716/718` cover-OID pair): the seeding
+  mechanism is proven (`gme_parse_header` writes them at product mount;
+  `product-init-and-runtime-tables.md` §4/§8), but the exact per-product live values are not in the
+  capture range. (They do not gate the first cover tap — the first-load branch is selector-independent.)
 - Dynamic posters of 0x1047/0x1048 (likely from per-game content config fields; no static poster).
 - `sm_set_state`'s 7-level table semantics (rate/sound-profile) — bytes proven, meaning inferred.
 

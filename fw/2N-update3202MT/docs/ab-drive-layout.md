@@ -1,8 +1,7 @@
 # A: vs B: — the two NFTL FAT partitions and who holds the games
 
-> Research question: nail the authentic drive/partition layout — which drive holds user
-> games (`*.gme`) vs system content, the two-partition geometry, and how discovery/mount
-> handle each.
+> Scope: the authentic drive/partition layout — which drive holds user games (`*.gme`)
+> vs system content, the two-partition geometry, and how discovery/mount handle each.
 >
 > **Headline (Proven): B: is the user drive with the games; A: is the system drive.**
 > The USB MSC exposes **only partition B** to the PC (LUN 0 = the B partition object),
@@ -11,7 +10,7 @@
 > firmware log) and is never PC-visible in normal operation.
 >
 > All addresses = unified runtime base **0x08009000** (flat `PROG.bin` load).
-> Tags: **[P]** = Proven (decomp/disasm/bytes cited), **[I]** = Inferred.
+> Tags: **[Proven]** = Proven (decomp/disasm/bytes cited), **[Inferred]** = Inferred.
 > Companions: [`book-discovery-and-load.md`](book-discovery-and-load.md) (the scan/mount),
 > [`partition-a-fat-vs-mbr.md`](partition-a-fat-vs-mbr.md) (sector-0 parse — drive-agnostic,
 > applies to both A and B), [`usb-msc-device.md`](usb-msc-device.md),
@@ -20,7 +19,7 @@
 
 ---
 
-## 1. Partition → drive-letter mapping [P]
+## 1. Partition → drive-letter mapping [Proven]
 
 `fs_storage_mount_init @0x0803a484` (decomp `0x0803a484.c`), after building the ONE
 FS-area medium (`nftl_build_fs_medium(dev, fs_start, total_blocks − fs_start, zonetab)`,
@@ -44,7 +43,7 @@ FUN_0803a1c8(volB, 1)                                // register as DRIVE 1 (no-
   returning `[+4]` (AddrCnt, raw LE u32). Symbol 0 = 'A', 1 = 'B'. [P `0x0803aa3c.c`]
 - **B's start is derived as A's AddrCnt** (`flash_erase_region(medium, cntA, cntB, …)`)
   — the record's own StartAddr word is not consulted; contiguity A-then-B is enforced
-  by construction. [P]
+  by construction. [Proven]
 - `FUN_0803a1c8` (**fs_drive_register**) stores the volume pointer into the drive array
   `*(*(0x08008c30+4)+0xc)[idx]` and bumps the drive count `*(…+8)`. `File_Open
   @0x080f8f20` resolves a path's drive letter as `toupper(w[0]) − 'A'` into that array
@@ -53,21 +52,21 @@ FUN_0803a1c8(volB, 1)                                // register as DRIVE 1 (no-
   `fatvol-medium-layering.md` §3.4]
 - Global quintet @**0x081db908**: `{fs_medium, partA, partB, volA, volB}`
   (pools `DAT_0803a78c/0x0803d764/0x0803d5b8/0x0803d768/0x0803d760` resolved from
-  PROG.bin). [P]
+  PROG.bin). [Proven]
 
 **Asymmetry (intent evidence):** A: is force-formatted on scan failure (the pen cannot
 run without its system FAT — the boot hangs if even the format fails); B: failure is a
 soft flag (`FUN_080ef760(1)`) and drive 1 simply stays unregistered. B:'s FAT is created
 at the factory (producer mkfs) / by the USB vendor "FM" command (`FUN_0803d0cc`:
 `fat_format_wrapper(*0x081db910 = partB, 0, sizeMB·(0x100000>>9), …)`) — i.e. B: is the
-*replaceable user medium*, A: the *mandatory system medium*. [P]
+*replaceable user medium*, A: the *mandatory system medium*. [Proven]
 
 The same A-format-fallback + drive-0/1 re-registration sequence runs again after every
 USB session in `usb_state_handler @0x08051090` (post-`usb_power_switch` remount: A via
 `*0x0803d764`→partA with format fallback → drive 0; B via `*0x0803d5b8`→partB with
 error-flag only → drive 1, registration inlined with idx 1). [P `0x08051090.c`]
 
-## 2. Zone-table geometry — the exact numbers [P]
+## 2. Zone-table geometry — the exact numbers [Proven]
 
 Producer-written zone table (block 0, page 63, tag `0x5a5a5a5a`; from a producer run,
 64 MB image), raw bytes:
@@ -82,11 +81,16 @@ Zone[2] B   : Start=0x3C00   AddrCnt=0x8000 (LE) Type4 STANDARD   Sym=1 ('B') Pa
 \* fs_start=7 is the no-bins-burned artifact; a real pen has the host-advanced value
 (~64+); the working reconstruction uses **134**.
 
-**Unit (this doc's reading):** the fields read as plain **LE u32 in 2-KiB-page units**
+**Unit (current reading):** the fields read as plain **LE u32 in 2-KiB-page units**
 (A: 0x3C00 = 15360 pages = **30 MB** — exactly the `.upd` partition record @0xA4;
-B: 0x8000 = 32768 pages = 64 MB; FAKE: 0x2F0 = 752 *blocks* = (30+64) MB / 128 KiB). Note
-this unit is **disputed** — [`nftl-medium-translation.md`](nftl-medium-translation.md) §0
-decodes the same field in AU units; the discrepancy is unresolved. Consumption chain [P]:
+B: 0x8000 = 32768 pages = 64 MB; FAKE: 0x2F0 = 752 *blocks* = (30+64) MB / 128 KiB).
+
+> **Open:** the A: partition size is quoted as both **30 MB** (this doc's page-unit
+> reading, matching the `.upd` record) and **60 MB** across the address-count derivations
+> — [`nftl-medium-translation.md`](nftl-medium-translation.md) §0 decodes the same
+> `AddrCnt` field in AU units; the exact unit is unresolved.
+
+Consumption chain [Proven]:
 
 - `nftl_zonetab_addrcnt` returns the raw LE u32 (pages).
 - `flash_erase_region @0x0803c784` scales it: `f = udivmod(0x200,
@@ -109,9 +113,9 @@ identity log2phy under our spare tags; physical = fs_start + logical):
 Each partition is a **bare FAT16 superfloppy at its partition-relative sector 0**
 (`fs_partition_scan`'s parse + the firmware's own `Fat_Format` — drive-agnostic; see
 `partition-a-fat-vs-mbr.md` §1–3 for the VBR requirements: bytes/sector 512, cluster
-count ≥ 4085, u32@0x1c6 ∈ {0} ∪ (>0x100)). [P]
+count ≥ 4085, u32@0x1c6 ∈ {0} ∪ (>0x100)). [Proven]
 
-## 3. Which drive holds WHAT [P]
+## 3. Which drive holds WHAT [Proven]
 
 **A: = system + index drive** (never PC-visible in normal operation):
 
@@ -140,13 +144,13 @@ count ≥ 4085, u32@0x1c6 ∈ {0} ∪ (>0x100)). [P]
   see. [P `upd-system-partition-layout.md` §1/§3]
 - The profile's default media scan path is UTF-16 `B:/` (profile+0xD4C,
   `FUN_080391e4`), and the vestigial IMAGE/VIDEO paths are `B:/IMAGE`, `B:/VIDEO`
-  (@0x0803ca12). [P]
+  (@0x0803ca12). [Proven]
 
 **Nothing in the boot path ever writes B:** — the log, profile, and `.lst` writes all
 target A:. B: is read-only to the firmware outside the USB session / update flow. [P
 corpus: all boot-path write/create sites above]
 
-## 4. Discovery & mount vs the two drives [P]
+## 4. Discovery & mount vs the two drives [Proven]
 
 - `udisk_gme_discovery(list 1)` at standby entry scans root **`"B:"`** (scan-root
   table @0x08122708 → string @0x080ed9ea, verified bytes `B:\0`) recursively for
@@ -155,11 +159,11 @@ corpus: all boot-path write/create sites above]
   included). [P `0x080afa80.c` `*puVar3 = 0x41`; `book-discovery-and-load.md` §2]
 - `gme_mount_check_product @0x08034130` opens **whatever path the `.lst` record
   holds** — `B:/foo.gme` or `A:/foo.gme` — with no drive preference beyond the scan
-  order (**B: records come first**). [P]
+  order (**B: records come first**). [Proven]
 - So: **games are *expected* on B:** (that is where the USB session puts them, and B:
   is scanned first), but a `.gme` on A: *would* also be found (pass 2). On a real pen
   A: never holds one — nothing ever writes a `.gme` there (§3). The A: pass most
-  plausibly exists to cover factory-preloaded content [I].
+  plausibly exists to cover factory-preloaded content [Inferred].
 - If B: failed to mount (drive 1 unregistered), the B: pass no-ops at `File_Open`'s
   drive check and only A: is scanned. [P mechanism]
 
@@ -168,19 +172,20 @@ corpus: all boot-path write/create sites above]
 1. **Games live on B:** — the USB-exposed user FAT (LUN 0 = partB, label `tiptoi`).
    A: *can* hold games (scan pass 2) but authentically never does; it holds only
    system content + the discovery/`.lst` index. `gme_mount_check_product` opens the
-   recorded path — on a real pen `B:/<name>.gme`. **[P]**
+   recorded path — on a real pen `B:/<name>.gme`. **[Proven]**
 2. **Zone A (Type2 UNSTANDARD, Symbol 0) → drive 0 = 'a:' = SYSTEM; zone B (Type4
    STANDARD, Symbol 1) → drive 1 = 'b:' = USB user drive.** Cross-checked three ways:
    the mount order (§1), the USB LUN medium (partB = the MP4-inquiry LUN), and the
-   content writers (§3). **[P]**
+   content writers (§3). **[Proven]**
 3. **Geometry:** A: = FS-medium blocks [0, 240) = 30 MB starting at fs_start
    (physical 134…373); B: = blocks [240, 240+N) starting at physical fs_start+240 = 374
    (N = 512 for the 64 MB producer ground truth; fill-rest on the real pen). AddrCnt is
-   consumed ×4 into 512-B sectors, `B.start := A.AddrCnt`. **[P]** (§2 table) *(The exact
-   AddrCnt unit is disputed across sources — see
+   consumed ×4 into 512-B sectors, `B.start := A.AddrCnt`. **[Proven]** (§2 table) *(Open: the
+   A: size is quoted as both 30 MB and 60 MB across the address-count derivations — the
+   exact AddrCnt unit is unresolved; see
    [`nftl-medium-translation.md`](nftl-medium-translation.md) §0.)*
 4. **A: holds SYSTEM/VOIMG/Language + `oidfilelist.lst` + logs — yes.** All path
-   constants are `A:`/`a:`-rooted (§3). **[P]**
+   constants are `A:`/`a:`-rooted (§3). **[Proven]**
 
 ## 6. Clarifications relative to related docs
 
@@ -203,7 +208,7 @@ corpus: all boot-path write/create sites above]
 | zone Symbol 0/'A' → partA → drive 0; Symbol 1/'B' → partB → drive 1 | **P** | `0x0803a484.c:94–126`, `0x0803aa3c.c` (Symbol match @rec+0xb), `0x0803a1c8.c`; drive-letter check `File_Open` per fatvol §3.4 |
 | B.start := A.AddrCnt (contiguous, StartAddr word unused by the mount) | **P** | `0x0803a484.c:99–103` |
 | A: format-on-fail (hang if impossible); B: error-flag only | **P** | `0x0803a484.c:109–127`; post-USB remount `0x08051090.c` |
-| AddrCnt consumed ×4 (units → 512-B sectors) by `flash_erase_region` | **P** | producer image block-0 page-63 bytes (§2); `.upd` A=30 MB record; `0x0803c784.c` + nandboot 0x31d0 disasm (udivmod). *(The exact AddrCnt unit is disputed across sources — see [`nftl-medium-translation.md`](nftl-medium-translation.md) §0.)* |
+| AddrCnt consumed ×4 (units → 512-B sectors) by `flash_erase_region` | **P** | producer image block-0 page-63 bytes (§2); `.upd` A=30 MB record; `0x0803c784.c` + nandboot 0x31d0 disasm (udivmod). *(Open: A: size quoted as both 30 MB and 60 MB across derivations — exact AddrCnt unit unresolved; see [`nftl-medium-translation.md`](nftl-medium-translation.md) §0.)* |
 | USB LUN 0 = partition B, "MP4" inquiry; A/"RES" variant dead | **P** | `0x0803ece4.c` + pools 0x0803ee30/38 → 0x081db90c/10, inquiry bytes @0x08041F27/F4C; callers `0x0803d1d4.c:36`, `0x080504a4.c:38` |
 | vendor "FM" formats B | **P** | `0x0803d0cc.c` (`*DAT_0803d5b8` = 0x081db910) |
 | A:-rooted system content; B:-rooted user/update content | **P** | strings §3 (verified in PROG.bin) |

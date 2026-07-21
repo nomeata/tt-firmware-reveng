@@ -212,8 +212,7 @@ FUN_0800f3ac(part, logical):
   `mtd_init` leaves it **all-0xff (empty)**; runs are inserted lazily on first resolve
   and edited on every write/fold. `FUN_080438a4` (RLE compaction, called from
   `nftl_core_rw_sector`) shares the same length arithmetic — the `·2` is because entries
-  are `u16` shorts, not UTF-16 characters (an earlier reading mistook it for a
-  wide-string routine).
+  are `u16` shorts.
 
 ### The log2phy table itself (Proven)
 
@@ -291,8 +290,7 @@ from near the top of the partition (reads block `param_2[1]`, page `param_2[2]`;
 `desc = *(A+0x20)` is `memset 0xff` then filled `desc[0]=medium`,
 `desc[2]=sectorfactor·base`, `desc[3]=sectorfactor·count`; a read whose logical index
 exceeds the partition bound `A[0xc]` is **clamped to `desc[1]=0xffffffff`** (relevant to
-sizing A: correctly — see [`nftl-resolver`] note below and
-[`nftl-medium-translation.md`](nftl-medium-translation.md)).
+sizing A: correctly — see [`nftl-medium-translation.md`](nftl-medium-translation.md)).
 
 ---
 
@@ -315,10 +313,10 @@ w=1)**:
 | [4:6] | **LOGICAL block + head flag** | `logical & 0x7fff`, `| 0x8000` when the chain terminates at this block. `mtd_init`/`FUN_08047510` invert this into `map[logical]=phys`. |
 | [6:8] | `part[+0x68]` (= `0xffff`) | seeded from `DAT_08044fdc` in `mtd_init`; metadata pages use `part[+0x68]+1`. Not consulted on the read path. |
 
-> **Note on an earlier "[4:6]=physical" reading.** A `[4:6]=physical` label appeared in
-> earlier drafts; it came from the `sector_idx != 0` fold tag (`F & 0x7fff`), which only
-> exists for chain width **w>1** — never on this pen. For w=1, `[4:6]` is the **logical**
-> block, as above. Confirmed across the four tag consumers and the live scan.
+> **Note on `[4:6]`.** For chain width **w=1** (this pen) `[4:6]` is the **logical**
+> block, as above. A `[4:6]=physical` interpretation applies only to the `sector_idx != 0`
+> fold tag (`F & 0x7fff`), which exists only for chain width **w>1** and never occurs on
+> this pen. Confirmed across the four tag consumers and the live scan.
 
 The reader (`nftl_core`) walks the block chain following `[2:4]` until `0xfffd`,
 skipping pages whose tag `[0]&0x80` is set (obsolete), taking each page from the first
@@ -346,15 +344,15 @@ and `nand_EraseBlk@0x08042d34` erases + marks-bad-on-failure via `dev+0x30`/`dev
 
 ### ECC scheme
 
-- **Hardware ECC in the NFC (Proven/Inferred).** The physical leaves call the HAL
+- **Hardware ECC in the NFC (Proven).** The physical leaves call the HAL
   ECC engine `func_0x07ff9044` (ECC on) vs `func_0x07ff960c` (raw), selected by
   `FUN_0800fe40@0x0800fe40`; the NFC is at MMIO `0x0404A000`
   ([`nfc-controller-registers.md`](nfc-controller-registers.md)). The read leaf checks
   the HAL return: bit `0x80000000` = hard fail, bit `0x40000000` = ECC path, mapping to
-  error codes. ECC is computed/checked in the controller, per **512-B sector**.
-  **Proven** that ECC is HW-per-512B; the **exact code** (Hamming vs BCH strength) lives
-  in the NFC and is **Inferred** BCH (typical for an Anyka 2 KiB-page controller) — not
-  decodable from PROG alone.
+  error codes. ECC is computed/checked in the controller, per **512-B sector**. The ECC
+  **strength** is not hidden in the NFC: it is table-selected by the `flash_ic.flag`
+  bits 4-7 field — for this pen's `flag = 0x1` that field is 0 ⇒ **4-bit/512B ECC** (see
+  [`nftl-library-identification.md`](nftl-library-identification.md)).
 
 ---
 

@@ -60,8 +60,8 @@ Opcode numbering convention: 16-bit LE value of the two bytecode bytes (tttool `
 | 0xFAFF | Cancel | `"Exit A Game"`, posts event |
 | 0xF8FF | Jump | deferred: gamectx+0xdd0=1, target → gamectx+0xdd2 (taken when audio stops) |
 | 0xFD00 | Game | game select (reads .gme, posts event in state 0x0b) |
-| 0xFEE0–0xFEE7 | — | `sm_set_state(0..7)` — direct statechart state jumps (0xFEE8 = nop) |
-| 0xFFA1 | — | **coin-flip play** (resolved 2026-07-20, gme-format-completeness §1): iff `evt_dispatch_count` (gamectx+0x125) even → play `playlist[m]` immediately (FFE8 tail) + latch +0xde0=m&0xff/+0xddf=1 for the replay walks; odd → no-op |
+| 0xFEE0–0xFEE7 | — | `sm_set_sound_profile(0..7)` — sets the sound/rate profile (NOT a statechart state jump); 0xFEE8 = nop |
+| 0xFFA1 | — | **coin-flip play** (gme-format-completeness §1): iff `evt_dispatch_count` (gamectx+0x125) even → play `playlist[m]` immediately (FFE8 tail) + latch +0xde0=m&0xff/+0xddf=1 for the replay walks; odd → no-op |
 
 Conditionals (in **`gme_check_condition` @0x08035624**, called per line by
 `gme_parse_check_conditions` @0x08035888): 0xFFF9 Eq, 0xFFFA Gt, 0xFFFB Lt, 0xFFFD GEq,
@@ -176,12 +176,12 @@ additional-script table for the expiry to do anything.
 | feature | mechanism | HW dependency |
 |---|---|---|
 | **Counter** (0xFFF0–0xFFF9, Neg, conditionals) | u16 register file @0x081da350, in-line C + nandboot `__rt_udiv` | none |
-| **Random** 0xFF00 `T($r,m)` | `tick@0x08008d24 % (m+1)` | none (tick = timer-IRQ count) |
-| **Random** 0xFC00 `P(b-a)` | `heartbeat_ctr@0x081da014 % range + b` | none (ctr = 0x1046 events from the OID-poll sw-timer) |
-| **"Random"** 0xFFE0 `P*` | `evt_dispatch_count % len` (gamectx+0x125: ++ per event delivered to book(13) — heartbeats/taps/timers — NOT per tap, so only round-robin when nothing else fires) | none |
-| **Random** 0xFFA1 `P½(m)` | coin-flip play: `evt_dispatch_count & 1` == 0 → play `playlist[m]` + latch for replay (gme-format-completeness §1) | none |
+| **Random** 0xFF00 `T($r,m)` | `tick@0x08008d24 % (m+1)` (confirmed dynamically in tt-emu) | none (tick = timer-IRQ count) |
+| **Random** 0xFC00 `P(b-a)` | `heartbeat_ctr@0x081da014 % range + b` (confirmed dynamically in tt-emu) | none (ctr = 0x1046 events from the OID-poll sw-timer) |
+| **"Random"** 0xFFE0 `P*` | round-robin over the **entire line playlist**: `playlist[dispatch_ctr % len]` (gamectx+0x125: ++ per event delivered to book(13) — heartbeats/taps/timers — NOT per tap, so only round-robin when nothing else fires; confirmed dynamically in tt-emu) | none |
+| **Random** 0xFFA1 `P½(m)` | coin-flip play: `evt_dispatch_count & 1` == 0 → play `playlist[m]` + latch for replay (gme-format-completeness §1; confirmed dynamically in tt-emu) | none |
 | **Game RNG** `rng_below` | LCG ×0x91E6D6A5 in nandboot, seeded `tick×ctr` once | none |
-| **Timer** 0xFE00/0xFEFF | 6-slot sw-timer @0x0800895c, periodic, expiry → event 0x30 → additional-script evaluation | none beyond the timer IRQ |
+| **Timer** 0xFE00/0xFEFF | 6-slot sw-timer @0x0800895c, periodic (literal period `m*100`, register/const flag ignored), expiry → event 0x30 → additional-script evaluation (confirmed dynamically in tt-emu) | none beyond the timer IRQ |
 
 **No GME command touches dedicated timing/entropy hardware.** No MMIO register is read for entropy;
 no dedicated HW timer is programmed by any GME command (the only MMIO touched is the interrupt
@@ -245,7 +245,7 @@ Docstring updates for already-named functions:
     dispatcher (see §1 table). Registers @0x081da350. Timer: 0xFE00 arm periodic
     (hal_timer_register(0, m*100, autoreload=1, cb=0x08003994), handle @0x08121ecc),
     0xFEFF cancel. Random: 0xFF00 reg=tick%(m+1) ("Rand(%d)=%d"), 0xFC00 via
-    gme_rand_in_range. 0xFEE0..7 = sm_set_state(0..7). Quirk: 0xFE00/0xFF00 use the raw
+    gme_rand_in_range. 0xFEE0..7 = sm_set_sound_profile(0..7). Quirk: 0xFE00/0xFF00 use the raw
     operand (is_const not checked).
 0x08034d74,gme_rand_in_range
     u8 gme_rand_in_range(u8 lo, u8 hi) — (heartbeat_ctr % (hi-lo+1)) + lo; playlist pick for

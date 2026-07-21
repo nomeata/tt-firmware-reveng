@@ -3,15 +3,15 @@
 > A precise account of what `cover_oid_classifier` tests on the tapped OID value versus what
 > actually mounts a book — the two are different decisions. Static decomp/disasm only; all
 > addresses = unified runtime base **0x08009000** (`data/PROG.bin`, file off = addr − 0x08009000).
-> **[P]** = read from decomp/disasm/PROG bytes (cited); **[I]** = inferred.
+> **[Proven]** = read from decomp/disasm/PROG bytes (cited); **[Inferred]** = inferred.
 > Companions: `cover-tap-first-product-load.md`, `book-discovery-and-load.md`,
 > `statechart-full-map.md`.
 
 ---
 
-## 0. Corrected model (executive summary)
+## 0. Model (executive summary)
 
-The old phrasing conflated two different decisions. The real split:
+Two different decisions are involved, made in two different places:
 
 | decision | where | what is tested |
 |---|---|---|
@@ -29,7 +29,7 @@ loaded), and the load that follows picks the **matching** product.
 
 ---
 
-## 1. Q1 — does the classifier compare the OID against a product/content threshold? **No** [P]
+## 1. Q1 — does the classifier compare the OID against a product/content threshold? **No** [Proven]
 
 There is **no `0x3E7`/1000 compare anywhere in `cover_oid_classifier`** (0x08037cec). Its
 value tests are (decomp `0x08037cec.c`):
@@ -40,7 +40,7 @@ value tests are (decomp `0x08037cec.c`):
    `code == 0xFFFF` → return 0 (consumed); otherwise **latch `akoid_buf[4] = raw & 0xFFFF`**
    (L84) — the value every later consumer reads.
 2. **Built-in cover matcher** (L90–146): with slot = current product `*0x081da08c`
-   (pool `DAT_080381a4` [P]) it compares the latched OID against per-slot **cover pairs**:
+   (pool `DAT_080381a4` [Proven]) it compares the latched OID against per-slot **cover pairs**:
    slot 6 {0xC21,0xC22}, slot 8 {0xEC4,0xEBA}, slot 0xF {0x16C0,0x16BF}, slot 0xE
    {0x162C,0x162B}, slot 7 {0xB7B,0xB7A}, slot 9 {0xA94,0xA93}, slot 0xB {0xA34,0xA35}, and —
    for a mounted GME — the **dynamic pair** `*0x081da716`/`*0x081da718` (enabled by
@@ -54,11 +54,11 @@ value tests are (decomp `0x08037cec.c`):
    trigger — and it is **purely state-gated**:
    `akoid_buf[0xb3]==0 ∧ akoid_buf[0]!=0 ∧ game_ctx[0x1d]==2 ∧ akoid_buf[0x21]==0xff ∧
    *0x08008c0d != 0xff` → `event_queue_post(0x104A); event_queue_post(0x1058)` (pools
-   0x080381bc/c0 = 0x104A/0x1058 [P]); latch `akoid_buf[0x74] = akoid_buf[4]`,
+   0x080381bc/c0 = 0x104A/0x1058 [Proven]); latch `akoid_buf[0x74] = akoid_buf[4]`,
    `akoid_buf[0x58] = 1`; clear `akoid_buf[0]`; **return 0 = consume**.
 
 **Where product-vs-content IS decided:** `gme_oid_dispatch` (book-13 default handler EA[17]),
-disasm [P]:
+disasm [Proven]:
 
 ```
 80364a4: ldr  r0,[r3,#4]        ; tapped OID (akoid_buf+4, latched by the classifier)
@@ -75,11 +75,11 @@ So the **threshold compare lives at 0x080364b0–0x080364b8 in `gme_oid_dispatch
 
 Classifier entry disable gate (for completeness, still not an OID test): low-battery stage
 `*0x08008c0b ≥ 3` or low-batt-voice pending `*0x081da086 & 0x10` → consume everything
-(L25; see `pmu-power-management.md`). [P]
+(L25; see `pmu-power-management.md`). [Proven]
 
 ---
 
-## 2. Q2 — content pass-through to the mounted book [P]
+## 2. Q2 — content pass-through to the mounted book [Proven]
 
 **Mechanism = classifier state gate + return-value convention.** Proven semantics
 (`sm_dispatch_to_hierarchy` 0x080f2d70 + `sm_dispatch_event` 0x080f2c78, param₄=0 for the
@@ -103,10 +103,10 @@ questions (open-book-mode vs product-vs-content).
 1. classifier: latch `akoid_buf[4]=4192`; cover matchers idle (current product 0 → no slot
    active); **first-load gate PASSES** (state-only!) → posts 0x104A+0x1058, latches
    `+0x74=4192`, `+0x58=1`, returns 0 (consumed) → book_mount(12) → product-less book(13).
-   **Yes: even a content OID opens book mode.** [P]
+   **Yes: even a content OID opens book mode.** [Proven]
 2. next tap of 4192 in-book: classifier gate-miss (`[0x21]=0`) → return 1 → dispatch:
    `4192 > 0x3E7` → 0x080365fc → `akoid_buf[0x4a8]==0` (nothing mounted) → **voice 0x2B**
-   (0x08036608). A content OID **never** triggers a book-load. [P]
+   (0x08036608). A content OID **never** triggers a book-load. [Proven]
 
 **B. Book mounted (say product 42, `[0x4a8]==1`):**
 1. classifier: latch 4192; dynamic cover pair (0x081da716/718, seeded from GME hdr@0x94)
@@ -115,18 +115,18 @@ questions (open-book-mode vs product-vs-content).
    chains miss → **range check `akoid_buf+0x18 ≤ 4192 ≤ akoid_buf+0x1a`** (decomp L789–795;
    range set by `gme_parse_start_end_oid` at mount) → in-range →
    **`gme_oid_to_playscript(4192)`** (L818; capture flag `[0x14]` toggled 0→1 around it).
-   Out-of-range → voice 0x2B. [P]
+   Out-of-range → voice 0x2B. [Proven]
 
 Note the inert latch: the classifier's `akoid_buf[0x58] = 1` has **no reader** — corpus grep
-[P]: the only reader of `[0x58]` is dispatch's `== 100` replay preamble (L48–55), and the
+[Proven]: the only reader of `[0x58]` is dispatch's `== 100` replay preamble (L48–55), and the
 only writers of 100 (`'d'`) are 14 game-state files (0x0807bdc8 … 0x0808ae10). So the
 first tap's latched `+0x74` is only consumed via the game-side 100-replay; the standby→book
-flow needs a **second physical tap** to mount. (Upgrades `book-discovery-and-load.md` §7's
-[I] to [P].)
+flow needs a **second physical tap** to mount. The `[0x58]=1` latch is proven inert (no
+reader), which settles the open question in `book-discovery-and-load.md` §7.
 
 ---
 
-## 3. Q3 — matching book, not the first entry [P]
+## 3. Q3 — matching book, not the first entry [Proven]
 
 The classifier **routes** (posts 0x1058 → book mode); the **OID match happens in
 `gme_mount_check_product`** (0x08034130), sole caller `gme_oid_dispatch` @0x08036508 with
@@ -159,11 +159,11 @@ during the probe, L56 — before the product-id check.)
 Tapping the mounted product's OID again is a **no-op** (no re-probe, no re-parse). Sole
 exception: product id **20** (0x14) re-reads hdr@0x71 and re-derives the media XOR key with
 alternating parity (0x080365bc–0x080365f8). Also: after a *successful* mount of product id
-**8**, dispatch posts event 0x101c (0x08036598–0x080365ac). [P]
+**8**, dispatch posts event 0x101c (0x08036598–0x080365ac). [Proven]
 
 ---
 
-## 4. Q4 — switching books while one is mounted [P]
+## 4. Q4 — switching books while one is mounted [Proven]
 
 Handled by the **same dispatch product block** — no unmount state, no transition:
 
@@ -184,20 +184,20 @@ Handled by the **same dispatch product block** — no unmount state, no transiti
 ## 5. Q5 — reconciliation: exact division of labour
 
 **`cover_oid_classifier` (0x08037cec) tests:**
-- frame tag / code validity (`&0x600000`, `code ≥ 0xFFFF` = non-OID) [P]
+- frame tag / code validity (`&0x600000`, `code ≥ 0xFFFF` = non-OID) [Proven]
 - the latched OID vs the **built-in + GME-seeded cover/page families** (§1.2/§1.3) — for the
-  `[0x4a4]`/`[0x155]`/`[0x156]` bookkeeping flags only [P]
-- **five state bytes** for the first-load branch — **never the OID value** [P]
+  `[0x4a4]`/`[0x155]`/`[0x156]` bookkeeping flags only [Proven]
+- **five state bytes** for the first-load branch — **never the OID value** [Proven]
 
 **`gme_oid_dispatch` (0x0803629c) tests:**
-- `akoid_buf[0]` fresh-tap flag; `*0x08008c0d != 0xff` usable-stage [P]
-- **product band `1..0x3E7` @0x080364b0** — THE product-vs-content decision [P]
-- tapped vs current product (`*0x081da08c`) — short-circuit / switch [P]
-- content range `+0x18 ≤ OID ≤ +0x1a` → playscript, else voice 0x2B [P]
+- `akoid_buf[0]` fresh-tap flag; `*0x08008c0d != 0xff` usable-stage [Proven]
+- **product band `1..0x3E7` @0x080364b0** — THE product-vs-content decision [Proven]
+- tapped vs current product (`*0x081da08c`) — short-circuit / switch [Proven]
+- content range `+0x18 ≤ OID ≤ +0x1a` → playscript, else voice 0x2B [Proven]
 
 **`gme_mount_check_product` (0x08034130) tests:**
 - per booklist record: GME magic 0x238B@8, language@0x59, **product id hdr@0x14 == tapped
-  OID** (`akoid_buf+4`) [P]
+  OID** (`akoid_buf+4`) [Proven]
 
 **Precise distinctions worth stating explicitly:**
 
@@ -207,12 +207,12 @@ Handled by the **same dispatch product block** — no unmount state, no transiti
 | "any product tap opens the first book" | **any tap of any decoded OID** (product, content, garbage) opens the **product-less book(13)** — **no book is loaded** by that tap. The load happens on the next product-band tap and is **hdr@0x14-matched**, not positional. A content-OID first tap ends in voice 0x2B, never a load. |
 | the state-9 return convention | `sm_dispatch_to_hierarchy` dispatches the leaf only `if (state9_ret != 0)`. Classifier: return 0 = consume (first-load, 0xFFFF code, disable gate), return 1 = propagate (gate-miss → in-book taps reach `gme_oid_dispatch`). |
 | the "system-code family 0xFF00..0xFFFF" | the blank/ack branch fires for `code ≥ 0x10000` (and `== 0xFFFF` returns 0); 0xFF00..0xFFFE latch as ordinary OID values |
-| `book-discovery-and-load.md` §7 "no auto-replay of the first tap" | confirmed **[P]**: `[0x58]` readers = dispatch `==100` only; the classifier's `=1` is inert |
+| `book-discovery-and-load.md` §7 "no auto-replay of the first tap" | confirmed **[Proven]**: `[0x58]` readers = dispatch `==100` only; the classifier's `=1` is inert |
 
-Also fixed en passant: dispatch decomp L135 `*DAT_08036734 == -1` is **`*0x08008c0d == 0xff`**
-(battery-final stage → error voices only), *not* the GME file-handle test — pool
-`DAT_08036734 = 0x08008c0d` [P PROG bytes], distinct from `DAT_08036730 = 0x08121ed0`
-(the handle used for `fs_seek`).
+A precision point on the dispatch pools: `*DAT_08036734 == -1` (dispatch decomp L135) is
+**`*0x08008c0d == 0xff`** (battery-final stage → error voices only), *not* the GME file-handle
+test — pool `DAT_08036734 = 0x08008c0d` [P PROG bytes], distinct from `DAT_08036730 =
+0x08121ed0` (the handle used for `fs_seek`).
 
 ---
 

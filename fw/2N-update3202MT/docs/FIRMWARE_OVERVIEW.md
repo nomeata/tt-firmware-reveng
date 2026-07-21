@@ -36,7 +36,7 @@ data/bss globals sit at their own fixed absolute addresses. Runtime map:
 **0x08000000-0x08009000** = nandboot low-RAM (resident HAL leaves + statechart CB + early globals);
 **0x08009000+** = PROG flat; **0x07ffxxxx** = mapped HAL/BIOS. Confirmed dynamically (clean boot,
 `app_init_main` returns; see [`tt-emu`](https://github.com/nomeata/tt-emu)) and cross-checked against
-a live pen RAM capture (99.9% byte match of the `.data` tables,
+a live pen RAM capture (a hardware capture, not included here; 99.9% byte match of the `.data` tables,
 `product-init-and-runtime-tables.md` §0).
 
 ## 4. Application architecture — hierarchical state machine
@@ -81,9 +81,9 @@ superfloppy, and walks the statechart 0→splash→standby→mount(12)→book mo
 tap. Findings in this doc set that were confirmed dynamically say so.
 
 ## Open items
-- **Post-13 product load + play.** The 8→13 walk is autonomous (the state-8 "settle freeze" was the
-  USB-present GPIO bit — resolved by bit 8 = 0; `autonomous-mount-state8.md`), and A: mounts through
-  the real NFTL. What remains is the mount/content cascade inside book mode: (1) the **codepage boot
+- **Post-13 product load + play.** The 8→13 walk is autonomous — state 8 exits on the USB/charger
+  presence GPIO bit (on battery, bit 8 = 0; `autonomous-mount-state8.md`), and A: mounts through the
+  real NFTL. What remains is the mount/content cascade inside book mode: (1) the **codepage boot
   read** — the FHA maplist + the 7 codepage clusters (blocks 36–42) so the real GBK header caches and
   `"a:/…"` paths convert (`codepage-what-is-it.md`); (2) the **A: root-dir enumeration**
   (logical block 1 → phys 135) → the firmware's own discovery scan + `gme_mount_check_product`.

@@ -187,6 +187,7 @@
 0x080abb0c,audio_amp_enable
 0x080abb50,audio_amp_pending
 0x080abb60,aud_player_set_volume
+0x080abef8,file_close_if_open
 0x080ac044,cipher_byte
 0x080ac060,cipher_byte_keyed
 0x080ac07c,cipher_u16

@@ -31,9 +31,9 @@ CPU  ──memcpy──►  L2 SRAM buffer 4 @0x08006800 (512-B circular window)
 
 - **Proven:** there is **no DMA** in the page path. The CPU `memcpy`s
   (`0x08003118` = plain word-optimized memcpy) between the caller buffer and the L2
-  SRAM window; the controller moves bytes NAND↔ECC↔L2 by itself. The "DMA" wording in
-  older docs (`nftl-write-consistency.md`, `nb-read-data-conventions.md`) means this internal
-  streaming.
+  SRAM window; the controller moves bytes NAND↔ECC↔L2 by itself. Where the NAND paths
+  say "DMA" (e.g. `nftl-write-consistency.md`, `nb-read-data-conventions.md`), it refers
+  to this internal controller streaming, not a DMA engine.
 - The NFC executes a **command list** (micro-ops) staged at `0x0404A100..`, started by a
   GO write to `0x0404A158`. Data-phase micro-ops route bytes through the ECC engine into
   L2 buffer 4; ECC parity is generated/consumed inside the engine and never appears in
@@ -55,7 +55,7 @@ CPU  ──memcpy──►  L2 SRAM buffer 4 @0x08006800 (512-B circular window)
 | `+0x100..+0x14F` | **CMD_LIST[0..19]** | W | Command-list FIFO. Firmware writes 32-bit micro-op words at `+0x100, +0x104, …`; execution starts on GO and stops at the first word with **bit0 (LAST)** set. Re-used phase-by-phase (a data phase writes a single word at `+0x100` and re-triggers). |
 | `+0x150` | **DATA_RD0** | R | Read-back bytes 0–3 (LE) captured by a *read-to-register* micro-op (`0x59`-type): NAND status byte (`&0xff` after cmd 0x70), ID bytes 1–4 after cmd 0x90. |
 | `+0x154` | **DATA_RD1** | R | Read-back bytes 4–7 (ID bytes 5–8 after cmd 0x90). |
-| `+0x158` | **CTRL/STATUS** | R/W | *Write* `0x40000200 \| 1<<(10+ce)` = **GO** (execute staged list; bit30 = go/enable, bits[13:10] = chip-enable mask, bit9 always set — maskrom uses the identical value). *Read*: **bit31 = ready/done** (`nb_nand_ready` `0x08002db4` polls `[+0x158]&0x80000000`). **bit14 (0x4000)** is a sticky status bit the firmware clears (RMW `&~0x4000`) before every data phase; it is never read back — safe to model as don't-care. (Older docs called this bic "arming HW-ECC"; the real ECC config is the engine word, §2. Correction.) |
+| `+0x158` | **CTRL/STATUS** | R/W | *Write* `0x40000200 \| 1<<(10+ce)` = **GO** (execute staged list; bit30 = go/enable, bits[13:10] = chip-enable mask, bit9 always set — maskrom uses the identical value). *Read*: **bit31 = ready/done** (`nb_nand_ready` `0x08002db4` polls `[+0x158]&0x80000000`). **bit14 (0x4000)** is a sticky status bit the firmware clears (RMW `&~0x4000`) before every data phase; it is never read back — safe to model as don't-care. This bic is a status-clear, not an HW-ECC arm: the real ECC config is the engine word (§2). |
 | `+0x15c` | **TIMING0** | W | NAND timing, written once at probe from the flash-config table (`cfg[+0x18]` = `0xF5AD1`). |
 | `+0x160` | **TIMING1** | W | Timing 2 (`cfg[+0x1c]` = `0x40203`). |
 
@@ -80,9 +80,9 @@ Observed literal words: `0x64`=cmd 0x00 · `0x18464`=cmd 0x30+wait · `0x40064`=
 `0x8065`=cmd 0x10+LAST · `0x30064`=cmd 0x60 · `0x68064`=cmd 0xD0 · `0x38064`=cmd 0x70 ·
 `0x48064`=cmd 0x90 · `0x7f864`=cmd 0xFF · `0x1b865`=cmd 0x37+LAST · `0x1b065`=cmd 0x36+LAST ·
 `0xb065`=cmd 0x16+LAST · `0x1a864`=cmd 0x35 · `0x42864`=cmd 0x85 · `0x3859`=read 8 ID bytes.
-So the "internal opcode 0x63/0x64" wording in `nftl-write-consistency.md` is a mis-read: 0x64 is
-the *command-cycle micro-op type* (the NAND opcode sits at bits[18:11]); `(row>>…)<<11|0x63`
-is the **last row-address cycle**, not a command. (Correction.)
+The values `0x63/0x64` are **micro-op types**, not NAND opcodes: `0x64` is the
+*command-cycle micro-op type* (the NAND opcode sits at bits[18:11]), and `(row>>…)<<11|0x63`
+is the **last row-address cycle**.
 
 Address cycles are emitted by `nb_nfc_addr_cycles` (`0x08002dfc` → writer `0x08002f2c`):
 **2 column cycles** (column = the op's `param_3`) then **N row cycles** (LSB first),
@@ -197,9 +197,9 @@ data transaction (taglen+parity) — the column cycles then address the spare ar
 
 ### 4.3 ERASE block — `nb_nand_erase_block` rt `0x08002af8` (file `0x07ffaaf8`)
 
-> ⚠ **Identity correction:** rt `0x08002af8` is easy to mistake for a "READ OOB/spare"
-> primitive; it is not. It issues NAND **0x60/0xD0 = BLOCK ERASE** (Proven: literals
-> `0x30064`/`0x68064`,
+> **Identity:** rt `0x08002af8` is the **BLOCK ERASE** primitive, not a "READ OOB/spare"
+> op (a natural-looking but wrong reading). It issues NAND **0x60/0xD0 = BLOCK ERASE**
+> (Proven: literals `0x30064`/`0x68064`,
 > payloads 0x60/0xD0). Callers: device erase leaf `FUN_0800faa4` (`0x08002af8(cmd,
 > block*pages_per_block)`), `flash_program_region` `0x0803cc80`, `FUN_080edc44`, and the
 > nandboot erase-region wrapper. rt `0x080007d8` (file `0x07ff87d8`) is a REGION-erase
@@ -331,16 +331,16 @@ nandboot (rt = file+0x8000; apply via `tools/ghidra_rename.py` naming):
 | 0x080025d4 | 0x07ffa5d4 | `nb_ecc_classify` | ECC status → 1 clean / 2 corrected (FIFO pending) / 3 uncorrectable. |
 | 0x0800260c | 0x07ffa60c | `nb_nand_read_page` | (keep; update docstring: per-sector L2 window drain, ECC classify, read-retry.) |
 | 0x08002044 | 0x07ffa044 | `nb_nand_program_page` | (keep; cmd 0x80/…/0x10, per-sector L2 stage + flush.) |
-| **0x08002af8** | 0x07ffaaf8 | **`nb_nand_erase_block`** | **RENAME (was nb_nand_read_oob): NAND 0x60/0xD0 block erase, status fail-bit retry ≤16 ("NF:12/13").** |
+| **0x08002af8** | 0x07ffaaf8 | **`nb_nand_erase_block`** | **NAND 0x60/0xD0 block erase, status fail-bit retry ≤16 ("NF:12/13"). (Not an OOB read — spare/tag reads go through `0x0800260c` with r3=0.)** |
 | 0x08002c18 | 0x07ffac18 | `nb_nand_probe_init` | Reset + 4×read-ID vs cfg@0x0800003c, timing +0x15c/160, dev/state fill, randomizer flag. |
-| 0x08002db4 | 0x07ffadb4 | `nb_nfc_ready` | [+0x158] bit31. (rename from nb_nand_ready: it is NFC-sequencer done, not NAND R/B.) |
+| 0x08002db4 | 0x07ffadb4 | `nb_nfc_ready` | [+0x158] bit31: NFC-sequencer done (not NAND R/B). |
 | 0x08002dc8 | 0x07ffadc8 | `nb_nfc_go` | [+0x158] = 0x40000200 \| 1<<(10+ce): execute staged command list. |
 | 0x08002de4 | 0x07ffade4 | `nb_nfc_go_wait` | go + poll ready. |
 | 0x08002dfc | 0x07ffadfc | `nb_nfc_addr_cycles` | Emit 2 column + N row address micro-ops. |
 | 0x08002e24/64 | 0x07ffae24/64 | `nb_nfc_acquire`/`release` | clk gate 2 + pin-share push/pop + refcount. |
 | 0x08002e8c | 0x07ffae8c | `nb_ecc_wait_ack` | Poll ECC bit6 + dir bit, W1C bit6, return status. |
 | 0x08002eb8 | 0x07ffaeb8 | `nb_data_phase_issue` | ECC engine word (+start) + NFC data micro-op (count-1)<<11\|0x119/0x129. |
-| 0x08002ee0 | 0x07ffaee0 | `nb_ecc_parity_bytes` | mode<4 ? 7m+7 : 14m−14 parity bytes / sector. (was misdescribed as "cmd issue".) |
+| 0x08002ee0 | 0x07ffaee0 | `nb_ecc_parity_bytes` | mode<4 ? 7m+7 : 14m−14 parity bytes / sector. (Computes ECC parity size; the per-sector issue is `0x08002eb8`.) |
 | 0x08002efc | 0x07ffaefc | `nb_nand_status` | (keep.) |
 | 0x08002f2c | 0x07ffaf2c | `nb_nfc_put_addr` | words 0x62\|byte<<11. |
 | 0x08002f6c | 0x07ffaf6c | `nb_nfc_clock_init` | sysctrl 0x74 bit0 + divider @0x04036000. |

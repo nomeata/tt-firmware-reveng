@@ -33,11 +33,14 @@ so a full‑AU FAT read covers 8 consecutive 512‑B sectors and a codepage sub�
 covers 1. The physical placement is contiguous; the AU scaling lives entirely in the
 **read decode**, together with the AddrCnt units / partition spans.
 
-> **AddrCnt-unit discrepancy (unresolved):** the zone-table `AddrCnt` unit differs across
-> sources — [`ab-drive-layout.md`](ab-drive-layout.md) reads it as LE 2‑KiB pages,
-> `producer-run-results` derived a BE `sizeMB·0x20000`, and this doc's trace decodes it in
-> AU units. The three have not been reconciled, and the implied A‑partition size differs
-> accordingly. Treat the exact `AddrCnt` unit as an open question.
+> **Open — AddrCnt unit / A: partition size.** The decomp trace here decodes the
+> zone-table `AddrCnt` in **AU units** (§2), which puts A: at 60 MB
+> (`0x3C00` = 480 blocks · 32). [`ab-drive-layout.md`](ab-drive-layout.md) reads the same
+> raw field as **LE 2‑KiB pages**, which puts A: at 30 MB (`0x3C00` = 15360 pages · 2 KiB).
+> The two readings share the same on-flash bytes but imply different sizes, so **the A:
+> partition size is quoted as both 30 MB and 60 MB across the address-count derivations;
+> unresolved.** The AU-unit reading is what reproduces the observed B: base (§3), but the
+> cross-source size discrepancy is not settled.
 
 ---
 
@@ -52,7 +55,7 @@ covers 1. The physical placement is contiguous; the AU scaling lives entirely in
 | dev+0x10 | 0x800 | page = 2048 B |
 | dev+0x14 | 0x100 = 256 | **sectors per erase block** (128 KiB / 512) |
 | dev+0x18 | 1 | AU multiplier |
-| **dev+0x1c** | **0x1000** | **AU size = 4096 B** (emu hack was 0x200) |
+| **dev+0x1c** | **0x1000** | **AU size = 4096 B** |
 | dev+0x04 | 0x40041 | flags: `0x40000` set, wear bit `0x10000000` **clear** ⇒ LINEAR resolver |
 | dev+0x24 | 0x0800fb00 | data read leaf (`FUN_0800fb00`) |
 | dev+0x28/0x2c/0x30 | f92c / f9cc / faa4 | data+tag / tag / OOB leaves |
@@ -113,10 +116,13 @@ B    = flash_erase_region(FS_medium, cntA, cntB, 0x200, 0)  B: start=cntA
 So **B’s FS‑medium base (sectors) = f · cntA = f · AddrCnt_A**, and B’s partition‑relative
 sector `S` → FS‑medium sector `f·AddrCnt_A + S`.
 
-**AddrCnt unit (Proven, conformance‑audit §3 + producer image):** AddrCnt is stored in
-**AU units = blocks·32** (LE u32). Producer `producer_nand.img` blk0/pg63:
-`AddrCnt_A = 0x3C00` (480 blocks · 32 = 60 MB), `AddrCnt_B = 0x8000` (1024 blocks · 32 =
-128 MB). f then converts AU→sectors (×8) downstream in `flash_erase_region`.
+**AddrCnt unit — AU units = blocks·32** (LE u32), the reading the decomp trace decodes
+(the ×8 conversion to 512-B sectors happens downstream in `flash_erase_region`, and the
+resulting B: base matches the observed value in §3). Producer image `producer_nand.img`
+blk0/pg63: `AddrCnt_A = 0x3C00` (480 blocks · 32 = 60 MB), `AddrCnt_B = 0x8000`
+(1024 blocks · 32 = 128 MB). Note the same `AddrCnt_A = 0x3C00` bytes are read elsewhere
+as LE 2-KiB pages (A: = 30 MB); that cross-source size discrepancy is the open question
+flagged in §0.
 
 ---
 
@@ -154,8 +160,8 @@ sector units (0xF000) the base came out `f·0xF000 = 0x78000` (block 1920) — w
 AddrCnt must be in **AU units** (0x3C00) so that `f·0x3C00 = 0x1E000` = FS‑medium block 480.
 
 The mount‑time NFTL block scan (OOB leaf, `LR 0x0800fa84`) reads `row = 256·blk` for every
-FS block 134..4095 → decodes to `256·blk + 0 + 0` under the new formula too (unchanged) —
-so the scan and `spare_for_row` (keyed by block) are unaffected.
+FS block 134..4095 → decodes to `256·blk + 0 + 0` under the AU decode as well (AU_index 0,
+sub_sector 0), so the scan and `spare_for_row` (keyed by block) are unaffected.
 
 ---
 

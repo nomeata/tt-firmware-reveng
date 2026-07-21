@@ -12,10 +12,6 @@ every structure-building step is a self-contained function with inputs we have
 (the `.upd` container + the flash_ic geometry table inside it). This doc maps the
 whole flow and gives the exact on-flash formats it creates (with the magic spare tags).
 
-> **Note:** the static RE below was cross-checked by running `producer.bin` directly; the
-> one addressing correction from that run — metadata pages live in **block 0** — is folded
-> in (see §0).
-
 Conventions: producer addresses = load base 0x08000000
 (`fw/2N-Update3202/data/producer.bin`, decomp in
 `fw/2N-Update3202/out/ghidra_artifacts/producer_decomp/`);
@@ -56,34 +52,30 @@ Everything the NFTL/boot chain later consumes is created by the producer in the
 `.upd` table: `addc1095, pagesize 2048, pagesperblock 64, totalblk 4096, planeblk
 2048, spare 64, flag 0x1`). **Proven** (`.upd` @0x200+48·0x40, parsed).
 
-Two immediate corrections to earlier docs (recorded here, nftl-layout.md not
-edited):
+The metadata indices `ppb−3−nbins+i` / `ppb−3` / `ppb−2` / `ppb−1` (the "59..63"
+values in the table above and in §2.3) are **pages of BLOCK 0** — the info block —
+not block numbers: `pr_p_write_maps` addresses them as `(block=0, page)`. Read every
+"block 59..63" in this doc as "page 59..63 of the info block (block 0)". The spare
+tags (`0x12121212`/`0x34343434`/`0x56565656`/`0x5a5a5a5a`), payload layouts, the
+zone-table encoding and the ASA layout (§2.1) are all confirmed byte-for-byte as
+written.
 
-- nftl-layout §3 says `upd_build_log2phy_blockmap` reads "the last two blocks"
-  (`piVar1[2]−2, −3`). `piVar1[2]` is **pages-per-block (64)**, not total blocks:
-  the metadata lives at **blocks 61/62/63**, i.e. the top of the first 64 blocks,
-  not the top of the chip. **Proven**: the struct at producer `0x0802afa0` is
-  filled by `FUN_0800b670` (`[0]=pagesize` u16@+4 of flash_ic, `[2]=pagesperblock`
-  u16@+6; small-page chips converted to 2048/64) and MT has the identical
-  initializer `FUN_08105c60@0x08105c60`; MT `FUN_08106fd4` wraps its page counter
-  at the same `[2]` field, so `[2]` is unambiguously pages/block.
-- nftl-layout §2's `device[+0x14] = 0x100` (256, 512-B-sector units) is an
-  *emulation seed*, not read from hardware. The producer provably uses
-  `chip[+0x14] = flash_ic.pagesperblock = 64` for the zone block (63); the SPL's
-  own header carries datasheet units (`nandboot.bin` @0x38: `00 08` = 2048-B page,
-  `40 00` = 64 pages/block). If a future real-NAND dump shows the zone table at
-  block 255 instead of 63, the runtime device struct is in sector units; all
-  *relative* relationships in this doc are unit-independent. **Inferred** (flagged
-  for verification).
+Two geometry facts underpin the page-directory arithmetic:
 
-> **Correction (from running producer.bin):** the `ppb−3−nbins+i` / `ppb−3` / `ppb−2` /
-> `ppb−1` metadata indices in this doc (the "blocks 59..63" rows above and §2.3) are
-> **pages of BLOCK 0** (the info block), not block numbers — `pr_p_write_maps` addresses
-> them as
-> `(block=0, page)`. The tags (`0x12121212`/`0x34343434`/`0x56565656`/`0x5a5a5a5a`),
-> payload layouts and the zone-table encoding in this doc are all confirmed as written;
-> only the block-vs-page addressing was mis-read. The ASA layout (§2.1) is confirmed
-> byte-for-byte.
+- `upd_build_log2phy_blockmap`'s `piVar1[2]` is **pages-per-block (64)**, not total
+  blocks. The metadata therefore lives at the top pages of the info block (pages
+  61/62/63 of block 0), not at the top of the chip. **Proven**: the struct at producer
+  `0x0802afa0` is filled by `FUN_0800b670` (`[0]=pagesize` u16@+4 of flash_ic,
+  `[2]=pagesperblock` u16@+6; small-page chips converted to 2048/64), MT has the
+  identical initializer `FUN_08105c60@0x08105c60`, and MT `FUN_08106fd4` wraps its
+  page counter at the same `[2]` field, so `[2]` is unambiguously pages/block.
+- `device[+0x14] = 0x100` (256, 512-B-sector units) is an *emulation seed*, not read
+  from hardware. The producer uses `chip[+0x14] = flash_ic.pagesperblock = 64` for the
+  zone block; the SPL's own header carries datasheet units (`nandboot.bin` @0x38:
+  `00 08` = 2048-B page, `40 00` = 64 pages/block). If a future real-NAND dump shows
+  the zone table at block 255 instead of 63, the runtime device struct is in sector
+  units; all *relative* relationships in this doc are unit-independent. **Inferred**
+  (flagged for verification).
 
 ---
 
@@ -220,8 +212,7 @@ before burning data bins; the FS area then starts after the bins
 
 ### 2.3 Writing the metadata blocks (`pr_p_write_maps` = producer `FUN_08009470` ≡ MT `0x08105118`)
 
-> *Correction:* all "block ppb−…" targets below are **pages of block 0** — see the note
-> in §0.
+(All "block ppb−…" targets below are **pages of block 0**, the info block — see §0.)
 
 Cmd 0x22, and the final step of every PROG self-update (**Proven**, MT
 `upd_unpack_bootfile@0x081058a4` calls `pr_br_write_boot` then `pr_p_write_maps`):
@@ -286,8 +277,8 @@ with a reserved-size arg (cmd 9 → `PR_M@0x08008d9c`). **Proven** (XML grammar 
 
 Note: with flash_ic `flag = 0x1` (no `0x10000000` wear bit) **all** resolvers are
 the linear flavor (`Nand_CreatePartition`'s selector, nftl-layout §3) — the pen's
-udisk is *not* wear-leveled, matching the earlier "NFTL under FAT is linear"
-result. NFTL per-block 8-byte tags and info pages are written lazily by the MtdLib
+udisk is *not* wear-leveled, consistent with the "NFTL under FAT is linear" result in
+[`nftl-layout.md`](nftl-layout.md). NFTL per-block 8-byte tags and info pages are written lazily by the MtdLib
 write path (producer contains the same `NFTL_V1.2.2` MtdLib as PROG), *not* by the
 format step: a freshly formatted FS area is simply all-0xFF. **Proven** (FormatBlk
 only erases; nftl tag writing = `nftl_core_rw_sector`, already specced in
@@ -471,8 +462,9 @@ a chosen bin start block (≥64), and the reserve size.
 4. **Block 63**: Information `{0x40, fs_start=134, resv, 3, 0}` + 3 Zone_Group records
    (FAKE/A/B; A=30MB→240 blocks·64 pages, B=rest) + `u16` + 0x200 fake-map
    (`{len=6,zone=0,group0=good_count}` per zone with no bad blocks); spare 0x5a5a5a5a.
-   *(The exact byte order/unit of the Zone_Group `StartAddr`/`AddrCnt` field is disputed
-   across sources — see [`nftl-medium-translation.md`](nftl-medium-translation.md) §0.)*
+   *(Open: the exact byte order/unit of the Zone_Group `StartAddr`/`AddrCnt` field — and
+   hence whether A: is 30 MB or 60 MB — is unresolved; see
+   [`nftl-medium-translation.md`](nftl-medium-translation.md) §0.)*
 5. **FS area (from block 134)**: erased (0xFF) — a valid fresh state, exactly what the
    factory `FormatBlk` leaves; `fs_storage_mount_init` mkfs's partition A on first boot
    (`FUN_08039d00`→`FUN_0803b310`) when the scan finds it unformatted. NFTL 8-byte tags
@@ -480,5 +472,5 @@ a chosen bin start block (≥64), and the reserve size.
 
 Caveats: (a) the bin start block and fs start are **host-chosen** — 64/134 are a safe
 reconstruction, not read off a real pen (Inferred); (b) the device-struct unit question
-(§0 correction 2) shifts only the zone-table block (63 vs 255) — verify against a physical
+(§0: sector vs page units) shifts only the zone-table block (63 vs 255) — verify against a physical
 dump or SPL disasm; (c) ECC bytes in the spare are HAL-generated and out of scope here.

@@ -116,7 +116,7 @@ SoC, firmware then holds GPIO15=1. [Proven for the firmware side; board circuit 
 
 `return read(GPIO 11)==1 && read(GPIO 1)==1;` (logs pins 11 and 0 as "`11 LEVEL=%d,0 level=%d.`").
 `splash_entry` 0x0804c1d4 requires **four successive 1-results** (delays 5/5/20 HAL units apart)
-to take the **FACTORY PROD-TEST** path (this is the prod-test path, *not* a "healthy boot"):
+to take the **FACTORY PROD-TEST** path:
 `akoid_buf[0xb3]=1`, arm the 100-unit poll timer, `sm_set_sound_profile(2,0)` (a volume/profile
 setter, NOT a state transition), checksum-verify `B:/spotlight.bin`, play voice **0x1B — a
 prod-test SPEECH announcement, not a jingle** — then the 0x0804cecc stage machine speaks
@@ -333,30 +333,30 @@ Consolidating the findings above, the power-domain inputs that define a clean au
 
 | addr | proposed name | docstring sketch |
 |---|---|---|
-| 0x0804bf18 | `prodtest_gpio_gate` (now battery_comparators_ok) | GPIO11 && GPIO1 both 1 = factory prod-test splash branch (retail pens read 0); logs "11 LEVEL/0 level" |
-| 0x08038da8 | `battery_adc_calibrate` (now power_battery_check) | boot ADC cross-calibration → baseline game_ctx+0x30/+0x32; aborts on VBUS (GPIO8) |
+| 0x0804bf18 | `prodtest_gpio_gate` | GPIO11 && GPIO1 both 1 = factory prod-test splash branch (retail pens read 0); logs "11 LEVEL/0 level" |
+| 0x08038da8 | `battery_adc_calibrate` | boot ADC cross-calibration → baseline game_ctx+0x30/+0x32; aborts on VBUS (GPIO8) |
 | 0x0800b3c8 | `battery_adc_read` | 0x04000064 bit9 on, 4×avg of 0x04000070[19:10], ×2 |
 | 0x0800b428 | `battery_adc_read2` | second channel/loaded variant used by the calibration |
 | 0x0800b464 | `battery_meas_enable` | 0x04000004 bit15 on/off around ADC/FS bursts [semantics Open] |
 | 0x0800b174 / 0x0800b15c | `battery_ring_push` / `battery_voltage_mv` | 4-ring @0x081db928; drop-min/max avg → mV via cal bytes |
 | 0x0800ada4 | `battery_level_bin8` | mV → level 1..8 (charge-screen animation) |
 | 0x080afd78 | `battery_monitor_tick` | per-0x1046; <0x300→warn(b9=1), <0x2C0×10→final(b9=2); stage @0x08008c0b, flag 0x081da086 bit4 |
-| 0x0800acfc | (extend heartbeat_1046_handler) | + "runs battery_monitor_tick every heartbeat; amp keep-alive toggle GPIO12" |
+| 0x0800acfc | `heartbeat_1046_handler` | runs battery_monitor_tick every heartbeat; amp keep-alive toggle GPIO12 |
 | 0x0800a9c8 | `button_dispatch_105f` | 0x105F codes: 5=vol+, 6=vol− (idx @0x081db904, gains 0x0800b9e4), 8/1=power button → voice 0x14 → 0x1062 → off |
 | 0x0800b6b4 / 0x0800b6e0 / 0x0800b6a4 | `volume_up` / `volume_down` / `volume_get` | |
-| 0x080508f8 | `power_off` (now sys_reset) | teardown + GPIO15=0 + spin-until-dead |
-| 0x08050a8c | `power_off_or_charge_park` (now charge_usb_state_machine) | repeated GPIO15=0; survives only on VBUS |
+| 0x080508f8 | `power_off` | teardown + GPIO15=0 + spin-until-dead |
+| 0x08050a8c | `power_off_or_charge_park` | repeated GPIO15=0; survives only on VBUS |
 | 0x08050864 | `repost_off_event_1062` | |
 | 0x08041ce4 | `usb_wait_host_sof` | POWER=0x20, poll INTRUSB SOF ≤ ~0xC3500 iters; 1 = host alive |
 | 0x080413fc | `usb_phy_off` | POWER=0, sysctrl teardown |
-| 0x08050bc4 | `usb_phy_arm_detect` (now usb_detect_2) | POWER=0x21, 0x348&=~1, 0x04000058\|=4 |
-| 0x0803ced8 / 0x0803cf7c | `usb_vbus_present` / (keep usb_present_query) | GPIO8==1 |
-| 0x0803d1d4 | (keep usb_power_switch) | + battery-latch release after 1.2M polls in USB-PC |
+| 0x08050bc4 | `usb_phy_arm_detect` | POWER=0x21, 0x348&=~1, 0x04000058\|=4 |
+| 0x0803ced8 / 0x0803cf7c | `usb_vbus_present` / `usb_present_query` | GPIO8==1 |
+| 0x0803d1d4 | `usb_power_switch` | battery-latch release after 1.2M polls in USB-PC |
 | 0x080abc34 / 0x080abbc8 | `pwr_path_battery` / `pwr_path_usb` | pin15/pin6 handover, flags @0x08008c01 |
 | 0x0804c47c | `authchip_challenge_gpio5_10` | anti-clone check; fail → akoid_buf[0xb4]=1 → kill |
-| 0x08051b0c | (extend standby_handler) | + idle auto-off: mode-8 counter @0x081da07c >300 → power_off; GPIO11 rescan branch |
-| 0x0804cecc | `state2_fwupdate_prodtest_handler` (now fwupdate_verify_image) | + low-batt announce continuation + idle USB re-poll tail + auth kill |
-| 0x080523b4 | (extend lang_play_batlow) | plays A:/Language/<lang>/(Update\|BatLowUpdate)/<voice>.wav |
+| 0x08051b0c | `standby_handler` | idle auto-off: mode-8 counter @0x081da07c >300 → power_off; GPIO11 rescan branch |
+| 0x0804cecc | `state2_fwupdate_prodtest_handler` | low-batt announce continuation + idle USB re-poll tail + auth kill |
+| 0x080523b4 | `lang_play_batlow` | plays A:/Language/<lang>/(Update\|BatLowUpdate)/<voice>.wav |
 | 0x08043190 | `nand_update_write_fail_hang` | the "system is low power" string is a write-failure message |
 | globals | | `0x081da07c` u16 idle-off counter; `0x08008c0b` low-batt stage; `0x08008c01` power-path flags; `0x081da086` bit4 low-batt-voice pending; `game_ctx+0x10` batt mode (3 ok/6 warn/7 final); `game_ctx+0x30/+0x32` ADC baseline; `game_ctx+0x1d` run submode (1 boot, 2 fresh-standby, 8 idle-armed, 9 charging); `game_ctx+0x1e` cable state (§4.1); `0x08121e60` charge-timer handle; `0x08121e68` usb-session byte; `0x081db904` volume idx |
 

@@ -3,8 +3,8 @@
 > Answers: what is the tip-toi-reveng wiki's "Test mode", which code implements it in THIS
 > firmware (2N update3202MT), how the volume buttons physically work, and how the factory
 > prod-test is entered. Static analysis of the named decompilation (PROG base **0x08009000**) +
-> the `nandboot` blob (flat at 0x08000000) + PROG pool bytes. Tags: **[P]** = read from
-> decomp/disasm/bytes, **[I]** = inferred (reason given), **[W]** = quoted from the
+> the `nandboot` blob (flat at 0x08000000) + PROG pool bytes. Tags: **[Proven]** = read from
+> decomp/disasm/bytes, **[Inferred]** = inferred (reason given), **[W]** = quoted from the
 > [tip-toi-reveng wiki](https://github.com/entropia/tip-toi-reveng/wiki).
 > Companions: `power-on-sound.md` §5, `pmu-power-management.md`, `settings-config.md` §3,
 > `system-voice-feedback.md`, `statechart-full-map.md`, `oid-sensor-read-protocol.md`.
@@ -32,8 +32,8 @@ description is byte-matched below.
 
 ## 1. The wiki's Test mode [W]
 
-Source: **https://github.com/entropia/tip-toi-reveng/wiki/PEN-Firmware**, section "Test mode"
-(fetched 2026-07-06). Quotes:
+Source: **https://github.com/entropia/tip-toi-reveng/wiki/PEN-Firmware**, section "Test mode".
+Quotes:
 
 > "**Hold the volume-down button while pressing the power-on button** to enter this mode (with
 > the new Player pen you might want to hold the skip-backwards button while pressing the
@@ -67,7 +67,7 @@ deltas (tone played once per press, not 3×; results file starts with a text lin
 
 ---
 
-## 2. THE key discovery: the three buttons are GPIO 11 / 0 / 1
+## 2. The three buttons are GPIO 11 / 0 / 1
 
 ### 2.1 The nandboot key scanner [P — disasm]
 
@@ -85,10 +85,10 @@ return 0xFF;                         // no key
 ```
 
 - **Idle levels** (nothing pressed): GPIO11=0, GPIO0=1, GPIO1=0. Note volume-up is
-  **active-low**. [P]
+  **active-low**. [Proven]
 - The boot latch `akoid_buf[0x57]` is set to **1** by the boot task **0x08039100** immediately
   after `app_init_main` returns (`strb` @0x08039154) — so the press that powered the pen on
-  can never fire a key event; scanning begins after the power button is first released. [P]
+  can never fire a key event; scanning begins after the power button is first released. [Proven]
 
 ### 2.2 Scan → debounce → event chain [P — disasm]
 
@@ -106,35 +106,36 @@ Armed by `gpio_config_unpack` 0x08039834 (← `app_init_main` 0x08038F5C):
 So the three buttons arrive in the statechart as **event 0x105F with payload bytes
 {code, sub}**: code 5 = vol+, 6 = vol−, 8 = power; sub 0 = short press (on release),
 1 = held ~600 ms, 3 = auto-repeat while held (volume keys only, ~every 240 ms), 2 = release
-after a hold. Timing values assume the 20 ms timer IRQ (gme-timer doc) — [I] for absolute ms,
-[P] for the tick counts. **0x105F is NOT only "OID partial"** (statechart map's label): phase 1
+after a hold. Timing values assume the 20 ms timer IRQ (gme-timer doc) — [Inferred] for absolute ms,
+[Proven] for the tick counts. **0x105F is NOT only "OID partial"** (statechart map's label): phase 1
 of `hal_event_id_for` is the shared button/aux event id.
 
-### 2.3 Corrections to earlier docs [P]
+### 2.3 Relationship to the pmu / power-on-sound docs [Proven]
 
-- `pmu-power-management.md` §1.1/§3.1: **GPIO 11 and 1 are not "battery comparators"** — they
-  are the power and volume-down buttons. `battery_get_level` 0x0804BF18 (logs
-  "`11 LEVEL=%d,0 level=%d.`" — i.e. power and vol-up pins) = "**power AND vol-down both
-  pressed**". The pmu §3.5 [Open] "GPIO11 triple role" resolves cleanly: (a) boot gate = the
+- **GPIO 11 and 1 are the power and volume-down buttons, not "battery comparators"**
+  (cf. `pmu-power-management.md` §1.1/§3.1). `battery_get_level` 0x0804BF18 (logs
+  "`11 LEVEL=%d,0 level=%d.`" — power and vol-up pins) tests "**power AND vol-down both
+  pressed**". This settles the pmu §3.5 "GPIO11 triple role": (a) boot gate = the
   test-mode chord; (b) standby GPIO11==1 → `a:` rescan + `soft_reboot` = **pressing the power
   button while idling in standby** re-scans content and reboots. "Retail pens read 11/1 = 0 at
-  boot" = "nobody holds the buttons".
-- `power-on-sound.md` §5 called the branch "gated on battery comparators sampled ×4" — same
-  correction; the gate is the wiki's entry gesture.
-- The "physical buttons identification [Inferred]" in pmu §0.5 is now **[Proven]** (scanner
-  reads the pins; codes match the dispatch).
+  boot" simply means nobody is holding the buttons.
+- The same reading applies to the `power-on-sound.md` §5 splash branch (its "gated on battery
+  comparators sampled ×4" gate is the wiki's entry gesture).
+- The physical-button identification is **[Proven]**: the scanner reads the pins and the codes match
+  the dispatch (cf. pmu §0.5).
 
 ---
 
 ## 3. Firmware correspondence — entry gate and the full test sequence
 
 Runs entirely in **splash(1)**; its event-action EA[0] = **0x0804CECC**
-(`fwupdate_verify_image` — historic name; it is the splash/prod-test/low-batt/off multiplexer).
+(`fwupdate_verify_image` in the decomp — a misnomer; it is the splash/prod-test/low-batt/off
+multiplexer).
 The prod-test state lives at **0x081DA004**: `+1` = pass counter, `+2` = **stage byte**;
 per-file results in `akoid_buf` `+0x15A..0x15F` (exists flags), `+0x160..0x165` (wrong flags),
-`+0x168..0x17C` (checksum values), `+0x180` busy flag. [P]
+`+0x168..0x17C` (checksum values), `+0x180` busy flag. [Proven]
 
-### 3.1 Entry — `splash_entry` 0x0804C1D4 L53–102 [P]
+### 3.1 Entry — `splash_entry` 0x0804C1D4 L53–102 [Proven]
 
 `battery_get_level()` (GPIO11==1 && GPIO1==1) sampled **4×** with delays 5/5/20 ms between
 samples (`0x08007938(5/5/0x14)`) — i.e. both buttons must be held through the first ~30 ms of
@@ -149,11 +150,11 @@ splash entry (which is well under a second after power-on). All four 1 ⇒
    **writing it into spotlight.bin**, byte-sums all but the trailing 4 bytes and compares with
    the trailing LE u32; the running sum is left in `*0x081DA000`. Then spotlight.bin is closed
    and **deleted** (transient). Result ⇒ stage := **0x20** (pass) / **0x1F** (fail);
-5. play **voice 0x1B** ("Testmode" announcement). [P]
+5. play **voice 0x1B** ("Testmode" announcement). [Proven]
 
-If any sample reads 0 → quiet retail boot (`[0xb3]=0`, →standby). [P]
+If any sample reads 0 → quiet retail boot (`[0xb3]=0`, →standby). [Proven]
 
-### 3.2 Automatic phase (no input needed) — stage machine in 0x0804CECC (LAB_0804D158) [P]
+### 3.2 Automatic phase (no input needed) — stage machine in 0x0804CECC (LAB_0804D158) [Proven]
 
 On subsequent events (heartbeats), gated on `is_audio_playing()==0` each step:
 
@@ -166,7 +167,7 @@ On subsequent events (heartbeats), gated on `is_audio_playing()==0` each step:
 This exactly reproduces the wiki's automatic audio sequence: *Testmode → Start test of program
 → Program test pass/fail*. [P code / W wording]
 
-### 3.3 Button-driven tests — the 0x105F branch of 0x0804CECC [P]
+### 3.3 Button-driven tests — the 0x105F branch of 0x0804CECC [Proven]
 
 Payloads with **sub ≠ 0** are ignored except `{8, sub=1}` (power long-press) →
 `*0x08008C0B = 3` → the shared off-path (voice **0x14**, GPIO15=0) — **the exit**.
@@ -195,7 +196,7 @@ write / I dead]). Long press (sub=1): exit as above.
 `n+9`); else store at `akoid_buf+0x64` and run the multi-digit read-out `FUN_0804BF84`
 (voices 9..0x12) — i.e. **the pen speaks the number of any code you tap**: a combined
 OID+audio check. Repeated system-family taps (≥0x12 within the classifier
-`cover_oid_classifier` [0xb3]==1 branch) also force the off-path. [P]
+`cover_oid_classifier` [0xb3]==1 branch) also force the off-path. [Proven]
 
 **Dead code**: stages 0x18–0x28 would run a second cascade over
 **`C:/TestFile/Test1_sd.bin..Test6_sd.bin`** (SD card) with overall verdict voices
@@ -209,7 +210,7 @@ compiled in but unreachable. [P — pool scan]
 |---|---|
 | tone played three times | played **once per press** of the 3rd '+' |
 | Prodtest.txt "begins with byte 0x01, then checksums" | begins with the text line "`The Program File's checksum:0X…`", then per-file text lines |
-| "must not be connected via USB" | no USB gate on the splash branch itself (USB classification only starts from standby, which is never reached) — the caveat is for other generations / the MSC boot path [I] |
+| "must not be connected via USB" | no USB gate on the splash branch itself (USB classification only starts from standby, which is never reached) — the caveat is for other generations / the MSC boot path [Inferred] |
 | encryption test "possibly uses TestFile" | it is the **auth chip**; TestFile is the separate vol-down cascade |
 
 ---
@@ -221,9 +222,9 @@ compiled in but unreachable. [P — pool scan]
 GPIO0 (vol+, active-low), GPIO1 (vol−, active-high), GPIO11 (power, active-high) → nandboot
 key scanner (~120 ms period, 20 ms debounce, boot latch `akoid_buf[0x57]`) → **event 0x105F
 {code 5/6/8, sub 0/1/2/3}** posted by 0x08006BFC (hookable via `*0x08008C5C`). The buttons do
-**not** go through the OID decoder, and there is no keypad MMIO — plain GPIO polling. [P]
+**not** go through the OID decoder, and there is no keypad MMIO — plain GPIO polling. [Proven]
 
-### 4.2 Retail dispatch — `button_dispatch_105f` 0x0800A9C8 (state-9 global TA[4]) [P]
+### 4.2 Retail dispatch — `button_dispatch_105f` 0x0800A9C8 (state-9 global TA[4]) [Proven]
 
 Only when **`akoid_buf[0xb3]==0`** (retail mode; in prod-test it returns without consuming so
 the splash EA sees the event):
@@ -247,7 +248,7 @@ multiplier (ring obj 0x08008D30+0x14, 0x400=unity). GME opcodes 0xFEE0–0xFEE7 
 
 Power + volume-down held at power-on (read as raw GPIO levels by `splash_entry`, not via the
 key-event path) = the wiki gesture = the prod-test gate. Volume-up alone / volume-down alone
-at boot do nothing special (the gate needs GPIO11 **and** GPIO1). [P]
+at boot do nothing special (the gate needs GPIO11 **and** GPIO1). [Proven]
 
 ---
 
@@ -309,9 +310,9 @@ absent it, the verdict voices are silent no-ops but the sequence is unchanged.
 | nb 0x08006B2C | `hal_key_read` | GPIO11=1→8 (power), GPIO0=0→5 (vol+), GPIO1=1→6 (vol−); boot latch akoid_buf[0x57] mutes keys until power released |
 | nb 0x080058F0 / 0x08005954 / 0x08005998 | `key_scan_start` / `key_debounce_cb` / `key_hold_cb` | 120-unit scan, 20-unit debounce; sub=0 press(release)/1 hold(5 ticks)/3 repeat(vol)/2 release-after-hold; state @0x08008C1A, last @0x08007E70 |
 | nb 0x08006BFC | `key_event_post` | post 0x105F {code,sub}; hook ptr *0x08008C5C |
-| 0x0804BF18 | `testmode_chord_gate` (was battery_get_level / battery_comparators_ok) | power && vol-down both pressed (raw GPIO) |
+| 0x0804BF18 | `testmode_chord_gate` (decomp `battery_get_level` — a misnomer) | power && vol-down both pressed (raw GPIO) |
 | 0x0804CECC | `splash_prodtest_handler` (keep fwupdate_verify_image alias) | splash EA: retail auth+0x1014 / prod-test stage machine / low-batt continuation / idle USB re-poll |
-| 0x080EE6E4 | `prog_area_dump_checksum` (was file_checksum_verify) | stream FHA "PROG" → handle (spotlight.bin), byte-sum vs trailing LE u32; sum → *0x081DA000 |
+| 0x080EE6E4 | `prog_area_dump_checksum` (decomp `file_checksum_verify`) | stream FHA "PROG" → handle (spotlight.bin), byte-sum vs trailing LE u32; sum → *0x081DA000 |
 | 0x0804BF84 | `testmode_speak_digits` | read out akoid_buf+0x64 in digit voices 9..0x12 |
 | 0x08039100 | `boot_task_main` | prints serial, calls app_init_main, sets key boot-latch akoid_buf[0x57]=1 |
 | globals | | `0x081DA004+2` prod-test stage; `+1` pass count; `0x081DA000` PROG byte-sum; `0x08008C0F` OidCaptureState.done_latch (tip-test flag); `akoid_buf+0x157/158/159` power/vol+/vol− press counters; `akoid_buf+0x57` key boot latch; `0x08008C1A/1C` key state/hold-count; `0x08007E70` last key |
@@ -322,7 +323,7 @@ absent it, the verdict voices are silent no-ops but the sequence is unchanged.
 
 | claim | status | source |
 |---|---|---|
-| wiki test mode = vol-down + power-on; program test voices; '+' steps tip/encryption/tone; Prodtest.txt | W | github wiki PEN-Firmware "Test mode" (2026-07-06) |
+| wiki test mode = vol-down + power-on; program test voices; '+' steps tip/encryption/tone; Prodtest.txt | W | github wiki PEN-Firmware "Test mode" |
 | GPIO11/0/1 = power/vol+/vol− buttons, polarities, codes 8/5/6 | **P** | nandboot disasm 0x08006B2C |
 | key scan/debounce/hold chain, sub semantics, 0x105F poster | **P** | nandboot 0x080058F0/0x08005954/0x08005998/0x08006BFC; timer arm: pool 0x08039938 → 0x080058F0 ← `gpio_config_unpack` ← app_init_main |
 | boot latch akoid_buf[0x57]=1 after app_init_main | **P** | PROG disasm 0x08039100–0x08039154 |
@@ -333,6 +334,6 @@ absent it, the verdict voices are silent no-ops but the sequence is unchanged.
 | vol− = TestFile/Test1..6.bin cascade + result lines + 0x25/0x26/0x27; 2nd press → 0x2F | **P** | `0x0804cecc.c` L79–99, L150–370; pools 0x0804D53C..0x0804D91C (B:/TestFile/TestN.bin), strings "checksum right!/wrong!/is not exist!" |
 | power sub-1 exit via 0x08008C0B=3 → 0x14 → off; short press only counts +0x157 | **P** | `0x0804cecc.c` L64–77, LAB_0804E27C |
 | OID tap digit read-out in test mode | **P** | `0x0804cecc.c` L605–637; `0x0804bf84.c` |
-| C:/TestFile *_sd.bin stages 0x18–0x28 + voices 0x29/0x2A unreachable | **P** | single pool ref to 0x081DA004 (PROG scan 2026-07-06); no stage-0x18 writer |
+| C:/TestFile *_sd.bin stages 0x18–0x28 + voices 0x29/0x2A unreachable | **P** | single pool ref to 0x081DA004 (PROG scan); no stage-0x18 writer |
 | retail dispatch gated on [0xb3]==0; vol acts on sub 0; power needs sub 1 | **P** | `0x0800a9c8.c` L36–155 |
 | volume idx/gain/persistence | **P** | settings-config.md §3 (re-verified) |

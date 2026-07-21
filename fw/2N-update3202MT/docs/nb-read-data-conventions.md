@@ -70,7 +70,7 @@ func_0x0800260c(param_2,  row,  count,  0,      TAGdesc)   ; r3 = 0 (NO data buf
                  r0        r1    r2      r3      sp[0]
 ```
 Pure spare/tag read. `r3 == 0` → no data DMA. Tag goes to `*(sp[0]+0)`, len `*(sp[0]+4)`.
-This is the site the round-13 note called "data buffer = r0"; it actually has **no data
+This is the site sometimes misread as "data buffer = r0"; it actually has **no data
 buffer** and `r0 = param_2` (a command value).
 
 **(B) `FUN_0800fb00` @0x0800fb90 and @0x0800fbd8 — the data/metadata read leaf:**

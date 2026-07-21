@@ -107,7 +107,7 @@ likewise a file-*existence* check at splash, not a mount-completion event. So no
 
 ---
 
-## 2. The settle counter — what "frozen at 2" actually was [Proven]
+## 2. The settle counter — a hardware decision, not a stall [Proven]
 
 The "settle counter" is the byte `*0x081da078` (`DAT_08050f38`), zeroed by `state8_entry`,
 incremented once per periodic **0x30 heartbeat** (nandboot timer slot → callback 0x08003994 →
@@ -154,7 +154,7 @@ superfloppy) ungates is:
 | state-8 mapper is a guard-free event router (0x1009/0x100c/0x105c/default) | Proven | mapper `0x0804e7c0` (full read) |
 | state8_entry = counter reset + 0x30 timer arm; no FS | Proven | `state8_entry` 0x08050c28 |
 | 12→13 (0x1059) posted unconditionally; empty B: scan only sets error flags | Proven | `state12_default_action` 0x0803440c; `booklist_scan_bnl` 0x08034300 |
-| "counter frozen at 2" = deliberate 0x105C exit under USB-present hardware, not a stall | Proven | `usb_connect_handler` 0x08050d28 (`1 < counter` → post 0x105C) |
+| the settle counter stopping at 2 = deliberate 0x105C exit under USB-present hardware, not a stall | Proven | `usb_connect_handler` 0x08050d28 (`1 < counter` → post 0x105C) |
 | state 8 not entered on a quiet battery boot (entry event 0x105d from content leaves only) | Proven | standby mapper `0x0804e884`; no 0x105d poster in `0x08051b0c`/`0x080511a0` |
 | tap→13 works with unseeded selectors (first-load branch), on the real NFTL mount | Proven (confirmed dynamically) | see `tt-emu` |
-| selector seeding happens at product mount (gme_parse_header) | Inferred | measured 0 at standby; writer not byte-traced |
+| selector seeding happens at product mount (`gme_parse_header` 0x08035d20) | Proven | `product-init-and-runtime-tables.md` §4 (sole caller `gme_oid_dispatch`, writes 0x081da08c/716/718 from the header file) |

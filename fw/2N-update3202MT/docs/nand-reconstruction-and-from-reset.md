@@ -1,6 +1,6 @@
 # NAND reconstruction + from-reset boot experiment (2N / update3202MT)
 
-The decisive "do we have a complete, authentic bootable firmware?" experiment. Addresses cited;
+Whether the shipped artifacts alone form a complete, authentic cold-boot chain. Addresses cited;
 Proven = observed by execution or byte-read, Inferred = deduction. The mask ROM referenced below is
 a **hardware capture**, not included in this repository.
 
@@ -81,7 +81,8 @@ Two hard, decisive observations across the whole run:
 Even if the SPL reached the `ldr pc,[0x0800021c]=0x08039100` handoff, it would land on the same
 PROG entry (0x08039100) that a from-entry boot starts from — so the real-SPL path adds nothing
 PROG cannot already reach there. (PROG's entry boots cleanly from artifacts alone under a flat
-load, with no dump seeding.)
+load, with no dump seeding — reproduced by running the unmodified firmware under
+[`tt-emu`](https://github.com/nomeata/tt-emu). **Proven.**)
 
 ## B.4 Verdict
 
@@ -95,7 +96,7 @@ generation:
   0x07ff8000 — it loads neither. That fits an older boot model where the ROM (or a stage we don't
   have) places both images; it does not fit the pen's ANYKANB2 ROM.
 
-So the pen's real boot SPL is an ANYKANB2 image not in our possession (it would need dumping from
-the pen's NAND boot blocks). We have an authentic, matching PROG and a genuine (captured) mask
-ROM, but the boot SPL in this .upd cannot boot this pen — the from-reset chain is NOT authentic
-end-to-end. The mask-ROM reject is the concrete proof.
+So the pen's real boot SPL is an ANYKANB2 image not present in these artifacts (it would need
+capturing from the pen's NAND boot blocks). PROG is authentic and matching, and the mask ROM is a
+genuine hardware capture, but the boot SPL in this `.upd` cannot boot this pen — the from-reset chain
+is **not** authentic end-to-end. The mask-ROM reject is the concrete proof.

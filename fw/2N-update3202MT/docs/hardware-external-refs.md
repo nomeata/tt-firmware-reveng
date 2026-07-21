@@ -28,7 +28,7 @@ Sources:
 | **SoC / CPU** | Chomptech **ZC3202N** (ChipID "1090"), 64-pin LQFP; = Anyka **AK1050**, **ARM926EJ-S** (ARMv5TEJ). Predecessor: **ZC3201** (rev A4). | Boot ROM banner "SNOWBIRD2-BIOS" / "Snowbird2_Massboot". UART 115200 (std) / 38400 (mass/UART boot). BIOS 0x0000_0000–0000_FFFF; Registers 0x0400_0000–040A_FFFF; RAM 0x0800_0000–0802_FFFF. Integrates USB2.0 host+slave, MMC/SD, audio ADC/DAC, camera IF, DDR2 ctrl. | wiki; anyka.com/en/productInfo.aspx?id=77; jotrin/hkinventory | **YES (2N)**. ZC3202N = our pen; ZC3201 = older 1N. Snowbird2/ANYKANB2 confirmed in our firmware. |
 | **NAND flash** (option A) | Hynix **HY27UF084G2B** | 4 Gbit = 512 MiB, ×8, TSOP-48. **2112-B page (2048+64), 64 pages/block, 4096 blocks, 128 KiB block.** 3.3 V. | wiki; alldatasheet 333911 | **YES (2N)** — this is the exact geometry our FINDINGS/nftl-layout.md pins as the 512 MiB target (2 KiB page, 64 pg/blk, 4096 blk). |
 | **NAND flash** (option B) | Hynix **H27UAG8T2BTR** | 16 Gbit = 2 GiB, ×8, TSOP-48. 4 KiB page + 64B spare, 4096 blocks (MLC). | wiki; alldatasheet 521500 | **variant** — the "B6 2 GB" board. Larger page than our 2 KiB target; a different capacity SKU, not our unit. |
-| **NAND flash** (option C) | Micron **29F32G08CBACA** (MT29F32G08CBACA) | 32 Gbit = 4 GiB, ×8. Note: Micron's *CBACA* die is 4 KiB page, 256 pg/blk, 24-bit/1080B ECC — larger than our 2 KiB target. | wiki; mouser micts04808 | **variant/unknown** — "MT29F32G08-class" is our *shorthand for a 512 MB-class ×8 part*; the literal CBACA is a bigger die. Our numeric geometry (2 KiB/64/4096) matches HY27UF084G2B, not CBACA. Flag: the task brief's "MT29F32G08 ≈512 MB" is imprecise — 512 MiB corresponds to the Hynix 4 Gbit part. |
+| **NAND flash** (option C) | Micron **29F32G08CBACA** (MT29F32G08CBACA) | 32 Gbit = 4 GiB, ×8. Note: Micron's *CBACA* die is 4 KiB page, 256 pg/blk, 24-bit/1080B ECC — larger than our 2 KiB target. | wiki; mouser micts04808 | **variant/unknown** — "MT29F32G08-class" is our *shorthand for a 512 MB-class ×8 part*; the literal CBACA is a bigger die. Our numeric geometry (2 KiB/64/4096) matches HY27UF084G2B, not CBACA. Note: the "MT29F32G08 ≈512 MB" shorthand is imprecise — 512 MiB corresponds to the Hynix 4 Gbit part. |
 | **OID sensor module** | Sonix **SNM9S102C2200A** (die = **SN9S102CE** CMOS image sensor); *marking not confirmed on our pen* | 3.0–3.6 V, 12 mA typ / 50 µA standby, up to 8 MHz, 12-pin module IF, programmable exposure/gain over serial bus, **2-bit nibble data out**, 8-bit ADC, built-in IR LEDs. | wiki; sonix.com.tw | **likely 2N**, unconfirmed by marking. Sensor is dumb pixels; decode is in the SN9P601 below. |
 | **OID image decoder** | Sonix **SN9P601FG-301**, LQFP48 | "OID 1.5" decoder = lower-cost D.H.R.T. engine. Core 3.0–3.6 V, reg-in 3.6–5.0 V, ~5 mA typ, <10 µA shutdown, embedded **16-bit DSP**, built-in 16 MHz RC osc, LDO + low-battery detect, **bidirectional 2-wire serial ("two_wire_interface V2")**, outputs the Optical Index. **OID_Code_v1.5.** | wiki; datasheet4u SN9P601FG-301; sonix.com.tw/article-en-1684-7124 | **YES (2N pen family)** — matches our pen (decoder→SoC sends only OID/control codes). See §2. |
 | — related 2nd-gen decoder | Sonix **SN9P701F-004** (LQFP48) | Full SN9P701 datasheet obtained (saved locally, see §2). OID_Code_v2: **65,536 indices (extendable to 262,144)**, 1.3×1.3 mm dots. Prior gen SN9P700 = OID_Code_v1.0, **0–4096 indices**, 32-pin. | datasheet PDF (saved) | **reference only** — the 601 (v1.5) is on our pen, but the 701 datasheet documents the same two_wire_interface family and the index model. |
@@ -83,8 +83,9 @@ path that programs an **Anyka on-SoC sensor** over I²C at device `0x94` (type 1
 — i.e. some pen builds route the CMOS sensor straight to the SoC's camera/I²C
 interface rather than through a standalone Sonix decoder. Treat the exact OID
 front-end as **build-dependent**; for the 2N firmware, the authoritative model is
-the GPIO2-clock / GPIO9-data shift path plus the `0x94` I²C sensor config, both
-already in `oid-sensor-read-protocol.md`.
+the GPIO2-clock / GPIO9-data shift path (the `0x94` I²C sensor config is present but
+**dormant** on this pen — sensor-type 0), both documented in
+`oid-sensor-read-protocol.md`.
 
 ---
 
@@ -94,7 +95,7 @@ already in `oid-sensor-read-protocol.md`.
 |---|---|---|
 | Anyka **Snowbird2** SoC, ANYKANB2 | ZC3202N = Anyka AK1050, ARM926EJ-S; boot banner "SNOWBIRD2-BIOS" | **Confirmed.** External marking ZC3202N ↔ our internal Snowbird2. |
 | NAND 512 MiB, 2 KiB page, 64 pg/blk, 4096 blk (`nftl-layout.md` names **HY27UF084G2B**) | HY27UF084G2B datasheet = 4 Gbit, 2112-B page, 64 pg/blk, 4096 blk | **Confirmed exactly.** Our doc already names the right part; wiki lists it as option A. |
-| "MT29F32G08-class" shorthand in task brief | Literal MT29F32G08CBACA is a 4 GiB / 4 KiB-page die (bigger) | **Mismatch flag.** The 512 MiB / 2 KiB-page target = **Hynix HY27UF084G2B**, not the literal Micron CBACA. Keep using HY27UF084G2B for geometry. |
+| "MT29F32G08-class" shorthand | Literal MT29F32G08CBACA is a 4 GiB / 4 KiB-page die (bigger) | **Mismatch flag.** The 512 MiB / 2 KiB-page target = **Hynix HY27UF084G2B**, not the literal Micron CBACA. Keep using HY27UF084G2B for geometry. |
 | OID sensor read on **GPIO9** (data), GPIO2 (clock); OID = raw `>>9 & 0x3FFFF` | Sonix decoder emits index over 2-wire serial; SoC shifts it in | **Confirmed.** Decode is in the Sonix ASIC; the SoC only clocks in the number over this serial link. |
 | DAC/DMA audio path (regs 0x04010000, 0x04080000, 0x04000008/64) → amp on GPIO 0x10 | External amp = **8891UL** 1 W; ZC3202N has integrated audio DAC | **Confirmed / enriched.** The analog chain is SoC-internal DAC → 8891UL → 8 Ω speaker. |
 | NFC/NAND controller @ **0x0404a000**; PMU MMIO **0x04070000**; GPIO **0x040000BC** | Wiki gives only the coarse register window (0x0400_0000–040A_FFFF); no per-block map published | **Consistent** (addresses fall in the documented window) but **no external per-register datasheet exists** — Anyka AK1050 register map is not public. Our reverse-engineered map is the authority. |
@@ -140,8 +141,8 @@ already in `oid-sensor-read-protocol.md`.
   it also documents A4 (ZC3201, 1N), R5, and "Gen 4" camera repairs. Only rows I
   marked **2N** describe our pen.
 - **NAND SKU spread.** Three different NAND parts appear across pen builds. Our
-  2N target = **HY27UF084G2B (512 MiB, 2 KiB page)**. The task brief's
-  "MT29F32G08-class ≈512 MB" conflates two things: the *literal* Micron CBACA is
+  2N target = **HY27UF084G2B (512 MiB, 2 KiB page)**. The
+  "MT29F32G08-class ≈512 MB" shorthand conflates two things: the *literal* Micron CBACA is
   a larger die; the 512 MiB geometry is the Hynix part. **Use HY27UF084G2B.**
 - **Sonix protocol PDF unreachable.** `two_wire_interface_v2.pdf`,
   `Consumer_OID.pdf`, and the SNM9S102C2200A/SN9P601FG spec files on sonix.com.tw
@@ -152,6 +153,6 @@ already in `oid-sensor-read-protocol.md`.
 - **AK1050 register map not public.** No manufacturer datasheet exposes the
   peripheral register map; rely on our RE.
 - **Sensor front-end is build-dependent.** Wiki says standalone Sonix decoder;
-  our firmware also has an Anyka on-SoC sensor config (I²C dev 0x94). For the 2N
-  firmware, the GPIO shift path + 0x94 config in `oid-sensor-read-protocol.md` is
-  authoritative.
+  our firmware also carries an Anyka on-SoC sensor config (I²C dev 0x94), but it is
+  **dormant** on this pen (sensor-type 0). For the 2N firmware, the GPIO shift path in
+  `oid-sensor-read-protocol.md` is authoritative.

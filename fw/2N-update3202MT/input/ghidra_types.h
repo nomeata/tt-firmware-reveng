@@ -395,10 +395,6 @@ int nandmtd_format(int arg1, int arg2, unsigned int arg3);
    remap + retry (asserts "it fails to read sector :B:%x,P:%x,N:%d!"). Content-match vs Update3202
    nftl_core_rw_sector 0x08042ac0. Proven. */
 unsigned int nftl_core_rw_sector(int nftl, unsigned int sector, int ctx);
-/* 0x0804bf18 battery_comparators_ok: returns 1 iff GPIO11 && GPIO1 both read 1 (battery OK for full
-   boot), else 0; logs "11 LEVEL=%d,0 level=%d.". CORRECTED: it is a boolean comparator gate, not a
-   level readout (was battery_get_level). MMIO GPIO 0x040000BC. Proven. */
-unsigned int battery_comparators_ok(void);
 /* 0x080aadd8 gme_read_main_binary_table: read the GME's embedded main-binary descriptor (firmware load
    address + file length; logs "Firmware address = %x,File len=%d."). Feeds gme_launch_binary_build_sysapi.
    Content-match vs Update3202 gme_read_main_binary_table 0x080a9894. Proven. */

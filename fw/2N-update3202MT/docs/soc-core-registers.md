@@ -143,8 +143,8 @@ reading of `0x200` (512 ≥ 341) at `0x04000070` passes all three phases.
   bit17 (0x20000)=timer1 fired → run the 6-slot sw-timer table @`0x0800895c` (system tick
   `*0x08008d24`, OID poll cadence, GME timers); else bit20 (0x100000)=GPIO-int scan cause.
 - **bit0 (0x001)** → audio **DMA-done** handler (0x080039d4): clears `0x04010000` bit16
-  (the DMA kick/busy bit) and posts the recorded audio event (id @0x08007e78). This
-  **supersedes** the old "audio = line 62 / 0x040000e0 bank1 bit30" model.
+  (the DMA kick/busy bit) and posts the recorded audio event (id @0x08007e78). The audio
+  interrupt is this top-level line 0, not a GPIO-int bank line.
 - **bit6 (0x040)** → USB (PROG 0x08035b24).
 
 **GPIO interrupts are timer-polled, not edge hardware.** While `0x4c` bit4 is set,
@@ -163,8 +163,8 @@ writes `|= 0x10000000` (bit28 ack). Registrations divide their ms period by 20.
 immediately). Else 5×-low per pin selects: bit13→Massboot (tag 0x06), bit12→Usbboot (0x01),
 bit9→UART (0x02). The mode is stored as a software tag in `0x04000054[31:24]`
 (SPI 0x05 → NAND 0x04 → Massboot 0x06 fallback; NAND read error 0xAA). **The ROM never
-touches `0x04000000` and performs no PLL writes in this window on the NAND path** (an
-earlier "0x04000000 clock word" reading was a misattribution of `0x04036000` UART).
+touches `0x04000000` and performs no PLL writes in this window on the NAND path**;
+`0x04036000` in this window is the UART, not a clock register.
 
 **Watchdog `0x0400000c`.** Mask ROM writes `0x63` once at reset — the **clock-gate init
 mask**, not a WDT. No kick loop exists. `hal_clkgate_set(module,on)`: on=1 clears the bit
@@ -217,7 +217,7 @@ The relevant dynamic behaviours in this window, all derived from the findings ab
 | 0x0800775c | `hal_gpio_int_enable` | per-pin GPIO int enable `0xe0/0xe4`. |
 | 0x08007768 | `hal_pinshare_cfg` | pinmux `0x04000074` (NAND `&~0xBA`, USB `&~0x198|0x110`). |
 | 0x080077d0 | `hal_clkgate_set` | `(module, on)` on `0x0400000c`; on=1 clears bit (ON); module9 = whole 0x77/0x7f. |
-| 0x0800339c / 0x080033e4 | `irq_mask_push` / `irq_mask_pop` | save/zero / restore `INT_ENABLE 0x34`; 4-deep stack @0x08008c94 (was mis-named nb_pinshare_*). |
+| 0x0800339c / 0x080033e4 | `irq_mask_push` / `irq_mask_pop` | save/zero / restore `INT_ENABLE 0x34`; 4-deep stack @0x08008c94. |
 | 0x08003430 | `hal_audio_irq_enable` | set/clear `INT_ENABLE` bit0 (audio DMA-done, line 0). |
 | 0x080039d4 | `hal_audio_irq_handler` | clear DMA kick `0x04010000` bit16; post audio event (id @0x08007e78). |
 | 0x08003c38 | `hal_gpio_int_arm` | `(pin, level)` → inverted level into polarity `0xf0/0xf4`. |

@@ -18,8 +18,8 @@ disassembly/bytes cited; **Inferred** = deduction. Read-only analysis.
   Usbboot/Massboot. These do NOT magic-check anything; they take host commands.
 - **No path accepts `ANYKANB1`.** The *only* boot magic anywhere in the ROM is the
   string `"ANYKANB2"` @0x6224, compared in exactly two places (PATH1 @0xd58, PATH2
-  @0xb74). So the `.upd`'s ANYKANB1 SPL cannot auto-boot this pen. Fundamental,
-  not "we found the wrong path."
+  @0xb74). So the `.upd`'s ANYKANB1 SPL cannot auto-boot this pen — a structural fact,
+  not a missing boot path.
 
 ## 1. Reset dispatch (@0x20) — Proven
 
@@ -109,8 +109,8 @@ The real pen has no SPI-NOR (PATH1 reads zeros → fails), so it boots via PATH2
 whose magic is at +4 with a NAND descriptor at +0xC — a layout the ANYKANB1 SPL
 (magic@+0x20, descriptor@+0x28) doesn't even match structurally.
 
-**Conclusion:** "our `.upd` can't boot the pen" is **fundamental**. We are not
-missing a normal path — the ANYKANB2 loaders ARE the normal path, and they load+jump
-an ANYKANB2 image the `.upd` does not contain. To cold-boot this pen we need an
-ANYKANB2 (Snowbird2) NAND boot image (magic@+4, descriptor@+0xC), which must be
-dumped from the pen's NAND boot blocks.
+**Conclusion:** the `.upd`'s ANYKANB1 SPL cannot auto-boot this pen, and this is
+**structural**, not a missing normal path — the ANYKANB2 loaders ARE the normal path,
+and they load+jump an ANYKANB2 image the `.upd` does not contain. Cold-booting this pen
+requires an ANYKANB2 (Snowbird2) NAND boot image (magic@+4, descriptor@+0xC), obtainable
+only from the pen's NAND boot blocks (a hardware capture, not included here).

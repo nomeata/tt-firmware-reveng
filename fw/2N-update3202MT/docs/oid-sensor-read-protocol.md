@@ -29,7 +29,7 @@ Status tags: **[Proven]** = read from disasm/decomp; **[Inferred]** = deduced, n
   valid bit, check byte) and masking (`&0x3FFFF`, final store `&0xFFFF`). The value in the frame's
   index field **is** the GME script code the games consume. tttool's `KnownCodes.hs` raw↔code
   scramble therefore lives **inside the Sonix ASIC / printed-pattern domain**, not in firmware.
-  **The working assumption is VERIFIED.** [Proven]
+  [Proven]
 - Consequence: the decoded OID number *is* the frame's index field — exactly what the real ASIC
   emits over the two wires. The raw↔OID scramble lives entirely in the sensor/print domain (§6).
 
@@ -289,7 +289,7 @@ edge-driven — there are no real-time constraints in the read path. [Proven]. T
 
 ---
 
-## 8. Proposed names / signatures / docstrings (names.csv harvest)
+## 8. Proposed names / signatures / docstrings
 
 nandboot HAL (addresses are runtime = file offset + 0x08000000):
 | addr | name | signature | docstring |
@@ -297,7 +297,7 @@ nandboot HAL (addresses are runtime = file offset + 0x08000000):
 | 0x08005560 | `hal_oid_bus_idle` | `void(void)` | Release the OID two-wire bus: GPIO9→input (pulled high), GPIO2→output low. Sensor pulls GPIO9 low to signal a pending code. |
 | 0x080055a4 | `hal_oid_shift_in` | `void(void)` | IRQs-off capture: attention check (GPIO9 low), ready-ACK wait, host-ACK pulse, then clock `state.bit_count` bits (23 or 32) MSB-first from GPIO9 into `state.raw_word` (@0x08008C14); sets `frame_ready`. |
 | 0x08005720 | `hal_oid_validate_word` | `void(void)` | Validate `akoid_buf+8`: type bits must be "10"; normalize to `0x400000\|index`; set `state.decode_valid`. |
-| 0x08005764 | `hal_oid_capture_decode23` | `void(void)` | Standby/game capture: 23-bit shift-in, require type "10", drop index 0x3FFFC, store code word → `akoid_buf+8`, validate. (was: `hal_oid_decode`) |
+| 0x08005764 | `hal_oid_capture_decode23` | `void(void)` | Standby/game capture: 23-bit shift-in, require type "10", drop index 0x3FFFC, store code word → `akoid_buf+8`, validate. |
 | 0x080057cc | `hal_oid_timer_cb` | `void(void)` | Periodic OID poll: capture+decode; on success set `akoid_buf[0]=1` (pen-down) and post event **0x1060** with `&(0x400000\|index)` into the AO ring. |
 | 0x080058b0 | `hal_oid_timer_start` | `void(void)` | (Re)arm the OID poll soft-timer: `hal_timer_create(0, 40, 1, hal_oid_timer_cb)`; handle → `state.timer_handle`. |
 | 0x0800780c | `hal_timer_create` | `int(u8 type, u32 period, u32 mode, void* cb)` | Soft-timer allocator (6 slots); returns handle or 0xFF. |
@@ -309,20 +309,20 @@ nandboot HAL (addresses are runtime = file offset + 0x08000000):
 PROG:
 | addr | name | signature | docstring |
 |---|---|---|---|
-| 0x080eed50 | `akoid_cmd_write` | `void(u8 cmd)` | Bit-bang an 8-bit command to the sensor, MSB first, data valid on GPIO2 falling edge; ends with bus idle. (was: `akoid_shift_out`) |
+| 0x080eed50 | `akoid_cmd_write` | `void(u8 cmd)` | Bit-bang an 8-bit command to the sensor, MSB first, data valid on GPIO2 falling edge; ends with bus idle. |
 | 0x080eedfc | `akoid_sensor_sleep` | `void(void)` | Send `0xA0,0xAC,0xA6` (100-unit gaps) and set the done-latch — sensor power-down handshake. |
-| 0x080eee40 | `akoid_poll_status32` | `void(void)` | 32-bit poll loop (≤20 frames): verify valid bit + check byte, store `raw>>9` → `akoid_buf+4`; on status word 0x60FFF8/0x60FFF1 → `akoid_sensor_sleep`. Standby/splash only. (was: `akoid_sensor_poll`) |
+| 0x080eee40 | `akoid_poll_status32` | `void(void)` | 32-bit poll loop (≤20 frames): verify valid bit + check byte, store `raw>>9` → `akoid_buf+4`; on status word 0x60FFF8/0x60FFF1 → `akoid_sensor_sleep`. Standby/splash only. |
 | 0x080eef84 | `akoid_poll_status32_once` | `void(void)` | Single-frame variant of the above. |
 | 0x080eef10 | `akoid_poll_trigger` | `void(void)` | If done-latch clear: ~100 ms GPIO2-high trigger pulse, then IRQs-off `akoid_poll_status32`. |
 | 0x080eef54 | `akoid_poll_trigger_thunk` | `void(void)` | Thunk of 0x080eef10. |
 | 0x080eef58 | `akoid_poll_from_idle` | `void(void)` | `hal_oid_bus_idle()` then `akoid_poll_trigger()`. |
 | 0x080eef68 | `akoid_rearm` | `void(void)` | Wake the sensor: `akoid_cmd_write(0x56)`; clear done-latch. |
 | 0x080eeb20 | `akoid_init` | `char*(void)` | Alloc + zero the 0xdf0 `akoid_buf` at `game_ctx+0x20`; init capture state; bus idle. |
-| 0x080ef114 | `oid_sensor_power_on` | `void(void)` | `0x04000058` bits[25:24]:=01; sensor_type:=0 (Sonix two-wire). (was: `oid_sensor_enable`) |
+| 0x080ef114 | `oid_sensor_power_on` | `void(void)` | `0x04000058` bits[25:24]:=01; sensor_type:=0 (Sonix two-wire). |
 | 0x080ef180 | `akoid_sensor_config_i2c` | `void(void)` | I²C(dev 0x94) register setup for alternate sensor types 1/3 — **dormant** on this pen (type==0). |
 | 0x080ef684 / 0x080ef6a4 | `akoid_reg_write` / `akoid_reg_read` | `(u8 reg, u8 val)` / `u8(u8 reg)` | I²C dev 0x94 accessors (dormant). |
 | 0x08037cec | `cover_oid_classifier` | (keep) | add: *also the proven arg→`akoid_buf+4` masking site: stores `raw & 0xFFFF` after type/system-range checks.* |
-| **0x080ee6e4** | `file_checksum_verify` | `int(int,int)` | **MISNAMED** as `akoid_decode_frame` in names.csv — it reads sectors by filename and verifies a trailing 32-bit byte-sum; nothing OID. Rename. |
+| **0x080ee6e4** | `file_checksum_verify` | `int(int,int)` | Reads sectors by filename and verifies a trailing 32-bit byte-sum; nothing OID (name proposed to replace an OID-implying label). |
 
 Struct: adopt `OidCaptureState` (§2) at 0x08008c08 in `ghidra_types.h`.
 

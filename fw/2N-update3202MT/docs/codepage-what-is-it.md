@@ -9,10 +9,10 @@ implement `MultiByteToWideChar`/`WideCharToMultiByte`-style string conversion,
 consumed by the filesystem layer (Anyka `Fwl_osFS`, which handles file names as
 UTF-16). The pen has no display; nothing here renders anything.
 
-Our earlier working assumption "GB2312 fonts/labels" was wrong on the
-"fonts/labels" part. The GB connection is only that **cp936 (GBK, the GB2312
-superset) is one of the 5 double-byte tables and is the *default* codepage**
-(Anyka is a Chinese chipset vendor; the SDK defaults to Chinese).
+This is encoding data, not fonts or labels. The only GB connection is that
+**cp936 (GBK, the GB2312 superset) is one of the 5 double-byte tables and is the
+*default* codepage** (Anyka is a Chinese chipset vendor; the SDK defaults to
+Chinese).
 
 Evidence status: everything below marked *(Proven)* was verified either byte-by-byte
 against reference encodings or read directly from the decompiled code;
@@ -178,7 +178,7 @@ mapping tables (a CJK font at any resolution would dwarf 0xD6CCC bytes for
 
 | current name | verdict |
 |---|---|
-| `codepage.bin` (section) | **Correct** — vendor's own name (`W:\codepage.bin`). Description should change from "GB2312 fonts/labels" to "codepage conversion tables (61 encodings + Unicode (de)composition)". |
+| `codepage.bin` (section) | **Correct** — vendor's own name (`W:\codepage.bin`). Description: "codepage conversion tables (61 encodings + Unicode (de)composition)". |
 | `codepage_load` | OK but it's a cached **sector read with backup recovery**; `codepage_read_cached` would be clearer. |
 | `codepage_get_header` | **Accurate** (GetCPInfo analog). |
 | `codepage_get_widechar` | **Misleading** — returns the 1/2 bytes-per-char flag. Rename → `codepage_bytes_per_char` / `codepage_is_dbcs`. |

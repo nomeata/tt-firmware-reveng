@@ -353,17 +353,14 @@ statechart runs three functions:
    **`audio_amp_disable`** (gameplay/audio suspended), `akoid_rearm`, GPIO12 amp strobe, sets the
    session byte **`*0x08051018 = 1`**, logs `"usbstate %d"`. [Proven]
 2. **`usb_state_handler` (0x08051090)** = state-5 tick: consumes the session flag; **drives the
-   power-hold GPIO15 = 1** (keeps the pen alive while plugged), rebuilds the host-visible FAT
-   (`FUN_080ae75c` update-list, then **`fs_partition_scan`** on the B: volume; if empty it
-   **`fat_format_wrapper`**-formats B: — an unformatted user drive gets a fresh FAT), re-scans A:,
-   and registers the B: medium as the exported LUN. Then it calls the blocking service loop. Logs
-   `"paint usb state %d"`, `"update list"`. [Proven]
-   **Ordering correction [Proven]:** the decomp order is *update-list → `usb_power_switch()`
-   (blocking session; it builds the LUN itself via `FUN_0803ece4(1)`) → **after unplug**:
-   `fs_partition_scan` on B: (→ `fat_format_wrapper` if the scan fails, i.e. the PC wiped it;
-   a `while(true)` hard-hang if even the format fails), `FUN_0803a1c8` re-register,
-   `fs_partition_scan` on A:, hook A: back into the mount-table slot*. So the FAT
-   rescan/format is the **post-session re-mount** of whatever the PC left, not session prep.
+   power-hold GPIO15 = 1** (keeps the pen alive while plugged), then runs, in decomp order,
+   *`FUN_080ae75c` update-list → the blocking `usb_power_switch()` session (which builds the
+   exported LUN itself via `FUN_0803ece4(1)`) → **after unplug**: `fs_partition_scan` on B:
+   (→ `fat_format_wrapper` if the scan fails, i.e. the PC wiped it — a `while(true)` hard-hang
+   if even the format fails), `FUN_0803a1c8` re-register, `fs_partition_scan` on A:, and hook
+   A: back into the mount-table slot*. So the B: FAT rescan/format is the **post-session
+   re-mount** of whatever the PC left, not session prep, and the LUN is registered inside the
+   service loop rather than before it. Logs `"paint usb state %d"`, `"update list"`. [Proven]
 3. **`usb_power_switch` (0x0803d1d4)** = the **MSC service loop** (misnamed — it does far more than
    the power path): opens the USB device (§3), then spins in `while(true)` polling the BOT phase
    (`FUN_0803dcf0`) and driving the enumeration/transfers:

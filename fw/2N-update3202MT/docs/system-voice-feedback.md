@@ -81,7 +81,7 @@ caller (see §4) ──fwl_play_voice_by_id(id) @0x080ab9ac
     ├─ fs_open/seek/read of A:/VOIMG/Chomp_Voice.bin  (table lookup, §1)
     ├─ *0x08008c00 = 0                                 (XOR decrypt OFF, §2.2)
     └─ play_media_setup(fd, start, len, 3) @0x080ab6ac  ("Fwl_pfVoice.c" line 0xda assert)
-         ├─ fwl_voice_play_2() @0x080ab620              (STOP any current voice — a stop fn, §2.3)
+         ├─ fwl_voice_stop_sync() @0x080ab620           (STOP any current voice, §2.3)
          ├─ aud_player_construct() if needed; volume_get()
          ├─ aud_player_reset + aud_player_set_source(player, 0, {fd,start,len}, 3, 1, 0x32, 0x32, 0)
          │     └─ codec hint 3 stored at player+0xe9; fs callbacks DAT_08032bcc.. installed
@@ -117,20 +117,19 @@ XOR-0xAD-decrypted, **system-voice reads are plain** — which matches the plain
 in the file. `lang_play_batlow` (§3.2) plays its WAVs without touching the flag (it runs in the
 updater flow where no GME source was armed). **[Proven; the lang_play nuance Inferred]**
 
-### 2.3 `fwl_voice_play` / `fwl_voice_play_2` are STOP functions (naming trap)
+### 2.3 The two voice-stop functions (0x080ab620, 0x080ab500)
 
-Despite their (our) names, neither plays anything:
+Both are stop functions; neither plays anything. Their raw decompilation names
+(`fwl_voice_play_2` / `fwl_voice_play`) are misleading, hence the renames used here and in §6:
 
-- **`fwl_voice_play_2` @0x080ab620** — *synchronous voice stop*: waits for the audio flags
+- **`fwl_voice_stop_sync` @0x080ab620** — *synchronous voice stop*: waits for the audio flags
   (`*0x08008c60` bit 2, pool 0x080ab970) to clear, then `aud_player_stop_2`, amp/flag cleanup.
   Returns the `"g_pAudPlayer is NULL"` string (@0x080ab5c4) if no player. Its ~50 call sites
   across the game/statechart handlers are all "shut the current prompt up" (e.g. before
   starting a new action, before power-off). `play_media_setup` itself calls it first. [Proven]
-- **`fwl_voice_play` @0x080ab500** — *hard stop + close*: `aud_player_stop`, player teardown,
+- **`fwl_voice_stop_close` @0x080ab500** — *hard stop + close*: `aud_player_stop`, player teardown,
   **closes and invalidates `g_voice_fd`** (`FUN_080ad514(); *g_voice_fd_slot = -1`), amp off.
   Called from the book-state exit path (0x080348a8). [Proven]
-
-Proposed renames: `fwl_voice_stop_sync` (0x080ab620), `fwl_voice_stop_close` (0x080ab500) — §6.
 
 ---
 
@@ -259,8 +258,8 @@ constants, digit `n+9`). [Proven corpus grep]
 |---|---|---|
 | 0x080ab9ac | `fwl_play_voice_by_id` (keep) | Open+cache `A:/VOIMG/Chomp_Voice.bin` (fd @0x081226f0), u32 offset-table lookup `[id*4]`,`[id*4+4]`, clear XOR flag @0x08008c00, `play_media_setup(fd,start,len,3)`. No bounds check (48 voices). Logs `voiID=%d`. |
 | 0x080ab6ac | `play_media_setup` (keep) | `chomp\zc_fwl\Fwl_pfVoice.c` L0xda. Stops current voice, ensures player, volume, `aud_player_set_source(...,codec_hint,...)` (hint→player+0xe9; 3=WAV/PCM), play. Shared by GME media, system voices, Language WAVs. |
-| 0x080ab620 | `fwl_voice_stop_sync` (was fwl_voice_play_2) | STOP, not play: waits busy-flag @0x08008c60 bit2, `aud_player_stop_2`, amp/flag cleanup. ~50 call sites = "silence current prompt". |
-| 0x080ab500 | `fwl_voice_stop_close` (was fwl_voice_play) | Hard stop + player teardown + closes `g_voice_fd` (@0x081226f0 := −1). Book-exit path. |
+| 0x080ab620 | `fwl_voice_stop_sync` | STOP, not play: waits busy-flag @0x08008c60 bit2, `aud_player_stop_2`, amp/flag cleanup. ~50 call sites = "silence current prompt". |
+| 0x080ab500 | `fwl_voice_stop_close` | Hard stop + player teardown + closes `g_voice_fd` (@0x081226f0 := −1). Book-exit path. |
 | 0x08034bc0 | `poweroff_voice_sequencer` | Stage @0x08008c0b: 1+battflag(0x081da086 bit4)→0x17/0x1A; 1 clean→0x2C; 3→0x14 + wait + stage 5 → off event. Tick from ~58 handlers. |
 | 0x0804bf84 | `speak_number_start` | Begin decimal readout of game_ctx[+0x64]: pick highest digit group, play voice digit+9, stage→+0x181. |
 | 0x0804c090 | `speak_number_resume` | Continue readout per +0x181 when audio idle; digits → voices 0x09–0x12. |

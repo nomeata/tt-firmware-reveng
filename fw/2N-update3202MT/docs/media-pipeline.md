@@ -44,7 +44,6 @@ frame through the installed codec, buffers PCM.
 - **Ogg/Vorbis** (the dumper's cues): `ogg_page_scan` (0x0810b874), `vorbis_parse_id_header`
   (0x08104064), `meta_parse_vorbiscomment` (0x0810bc78), `oggpack_write` (0x08110408).
 - **FLAC**: `flac_parse_metadata` (0x0810b9a4), `flac_read_streaminfo` (0x0810bd8c).
-- **Anyka frame**: `akoid_decode_frame` (0x080ee6e4).
 
 ## 8. Output HW
 `codec_clock_init` (0x0803abd4) + `audio_amp_enable`/`disable` (0x080abb0c/0x080ab3ec) bring up the

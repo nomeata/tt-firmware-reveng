@@ -184,8 +184,8 @@ clkgate(5,off), `*0x08008c90 = 0`.
 divider code 0..0xff for the closest `rate ≈ PLL/(div+1)/OSR[i]` with the master clock capped
 at **14 MHz** (`0xd59f80`), **OSR table @0x08033628 = {256,272,264,248,240,136,128,120}**;
 then pulses `0x04080000` bit0, writes `0x04000064[16:14] = osr_idx` and
-`0x04000008[20:13] = div | latch 0x200000`, waits, sets bit24. Observed: **22050 Hz → divider
-code 0x46** (prior doc, Proven). Mixed-rate system voices (16 k/32 k/44.1 k WAVs,
+`0x04000008[20:13] = div | latch 0x200000`, waits, sets bit24. **22050 Hz → divider
+code 0x46** [Proven]. Mixed-rate system voices (16 k/32 k/44.1 k WAVs,
 `system-voice-feedback.md`) work the same way — the DAC clock follows each file's header.
 
 **Bias/pop ramp `FUN_0800b284(on)`**: state byte `0x08008c62`; ramps `0x0400005c` bits[15:13]
@@ -294,7 +294,7 @@ Pulling §§1–6 together, the observable hardware boundary a decoded track cro
 
 ---
 
-## 8. Names / docstrings (names.csv candidates)
+## 8. Proposed names / docstrings (for names.csv)
 
 | addr (runtime) | name | docstring |
 |---|---|---|
@@ -304,7 +304,7 @@ Pulling §§1–6 together, the observable hardware boundary a decoded track cro
 | 0x08003dbc (st 0x07ffbdbc) | `hal_ao_get_chunk` (keep) | dequeue ≤0x400 B from ring `*0x08008d2c`: +0x38 read ptr, +0x40 wrap, +0x20 count; +0x34 set → zero-pad partial chunk (silence). |
 | 0x080039d4 (st 0x07ffb9d4) | `hal_audio_irq_handler` (keep) | IRQ line 0: clear 0x04010000 bit16; tag 0x76 → (0x08008c91 swallow) / (cb @0x08008c64) / resubmit next chunk, on drain set 0x08008c60 bit0; tag 0x75 → mic-capture notify. |
 | 0x08003430 (st 0x07ffb430) | `hal_audio_irq_gate` | set/clear INT_ENABLE `0x04000034` bit0 (audio DMA-done line 0). |
-| 0x08003d18 (st 0x07ffbd18) | `hal_audio_clk_enable` (was hal_audio_irq_enable) | guard `*0x08008d1c`; record event-id byte (0x3e, never consumed) @0x08006a80; `0x04036000\|=0x10000000, +4\|=0x10010`, wait bit19. |
+| 0x08003d18 (st 0x07ffbd18) | `hal_audio_clk_enable` | guard `*0x08008d1c`; record event-id byte (0x3e, never consumed) @0x08006a80; `0x04036000\|=0x10000000, +4\|=0x10010`, wait bit19. |
 | 0x080035f8 (st 0x07ffb5f8) | `hal_ao_flags` | arg0: 0=submit (bit0←0,bit2←1), 1=drained (bit0←1,bit2←0) on `0x08008c60`. |
 | 0x0800b71c | `aud_task_tick` (keep) | per-tick: out-SM (or 0x0800ca14 for codec 0x13) + re-kick submit when 0x08008c60 bit0; first-chunk bias ramp. |
 | 0x0800b284 | `codec_bias_ramp` | (on): 0x0400005c bias-step ramp + 0x04000068 paths; state @0x08008c62; anti-pop. |

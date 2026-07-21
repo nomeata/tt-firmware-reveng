@@ -1,17 +1,17 @@
-# The ANYKANB1-vs-ANYKANB2 nandboot generation puzzle
+# ANYKANB1 vs ANYKANB2: the nandboot generation stamp
 
-Read-only investigation. Each claim is marked **Proven** (byte/disasm evidence cited inline)
+Static analysis. Each claim is marked **Proven** (byte/disasm evidence cited inline)
 or **Inferred** (reasoning from the evidence). The pen's mask ROM and the live-pen RAM/ROM
 dumps referenced below are **hardware captures**, not included in this repository; the analysis
 describes them.
 
-## The puzzle (restated)
+## The generation question
 
 The pen's on-chip mask ROM guards the storage-boot path with an 8-byte magic and
 accepts **only `"ANYKANB2"`**. The field-update copy of the nandboot/SPL
 (`data/nandboot.bin`, extracted from `update3202MT.upd`) carries
-**`"ANYKANB1"`** at +0x20. Yet a live pen RAM dump proves the pen is running the
-*same nandboot code we have*. How can an ANYKANB1-stamped image run under a mask
+**`"ANYKANB1"`** at +0x20. Yet a live pen RAM dump shows the pen running the
+*same nandboot code carried in the `.upd`*. How can an ANYKANB1-stamped image run under a mask
 ROM that demands ANYKANB2?
 
 **Resolution (Proven in aggregate): the 8-byte magic is an isolated header/version
@@ -44,7 +44,7 @@ Layout (Proven by hexdump):
 - **Proven** — `"ANYKANB"` occurs exactly **once** in the file, at offset 0x20
   (single hit at byte 32). The magic is a self-contained 8-byte field, not embedded
   in any instruction stream.
-- **Proven** — the byte-matched region cited in the puzzle (~0x7798) is code far
+- **Proven** — the byte-matched region (~0x7798) is code far
   past the header. `nandboot.bin@0x7798 = 04109fe5 000191e7 1eff2fe1 a0790008`
   (ARM: `ldr r1,[pc,#4]`, `ldr r0,[r1,r0]`, `bx lr`, then a data word). This is
   ≈0x7700 bytes *after* the magic — unambiguously code/data body, structurally
@@ -118,8 +118,8 @@ not included in this repository; identical to the `2N-Update3202` capture (md5
   are `41 4e 59 4b 41 4e 42 32` = **"ANYKANB2"**. It is immediately followed by the
   error strings `"wrong1\n"` (0x622c) and `"wrong\n"` (0x6234) — the magic-mismatch
   reject path. So `"ANYKANB2"` is the single accepted magic in this ROM. (The
-  detailed PATH1 `image+0x20` / PATH2 `image+4` comparison logic was established by
-  the prior disasm pass; this confirms the string it compares against.)
+  detailed PATH1 `image+0x20` / PATH2 `image+4` comparison logic is in
+  `maskrom-boot-vs-recovery.md`; this confirms the string it compares against.)
 
 - **Proven — this is genuinely the pen's silicon ROM, not a mismatched dump.** The
   live pen ROM dump (65532 bytes) equals `maskrom.bin[4:]` with **0 differing bytes**
@@ -130,8 +130,8 @@ not included in this repository; identical to the `2N-Update3202` capture (md5
 
 - **Corroborating** — a one-byte-patched variant of the ROM differs in exactly
   **one byte, at 0x622b**: `'2'`(0x32)→`'1'`(0x31), i.e. its gate reads `"ANYKANB1"`.
-  This pinpoints the entire generation gate to that single magic byte, and shows a
-  prior experiment already needed a 1-byte ROM patch to make an ANYKANB1 image boot.
+  This pinpoints the entire generation gate to that single magic byte: a 1-byte ROM
+  patch ('2'→'1') is all it takes to make the gate accept an ANYKANB1 image.
   (**Proven** the 1-byte delta.)
 
 ---
@@ -176,7 +176,7 @@ was flashed with an **ANYKANB2 boot image = ANYKANB2 header + the shared SPL cod
 `update3202MT.upd` is the **ANYKANB1** (sibling-generation) release of the same
 firmware family; its boot image = **ANYKANB1 header + the same code**. The mask ROM
 checks the header magic on the pen's on-NAND image → sees `ANYKANB2` → passes →
-runs the code → which is byte-for-byte the code we hold, because the two only differ
+runs the code → which is byte-for-byte the code in the `.upd`, because the two only differ
 in the 8-byte stamp (and per-chip geometry) at the very top of the header.
 
 **Where the pen's ANYKANB2 header came from (Inferred):** an ANYKANB2 factory/OTP
