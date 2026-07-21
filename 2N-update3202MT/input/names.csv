@@ -21,6 +21,8 @@
 0x0800df70,fs_read_xor_decrypt
 0x0800e030,fs_read_plain
 0x080119c4,printf
+0x08010f78,sysapi_write
+0x08014484,sysapi_close
 0x08013158,sysapi_is_audio_playing
 0x08016008,sysapi_open
 0x080160b0,sysapi_read
@@ -98,6 +100,9 @@
 0x08042c58,nftl_update_log2phy
 0x08042d34,nand_EraseBlk
 0x08043780,nftl_check_block_danger
+0x08044628,NFTL_Erase
+0x080446c0,NFTL_IsBadBlock
+0x08044754,NFTL_SetBadBlock
 0x08044d28,nftl_init
 0x080451a4,nftl_init_2
 0x080457b4,mtd_free_block
@@ -219,7 +224,7 @@
 0x080efcbc,Utl_StrCmp_2
 0x080efd50,Utl_StrUpper
 0x080f08f8,fs_get_driver_by_index
-0x080f0c28,fatlib_version
+0x080f0c28,FatLib_GetVersion
 0x080f0cb8,medialib_version
 0x080f0d38,medialib_close
 0x080f0e20,medialib_open
@@ -282,6 +287,7 @@
 0x080ff058,medialib_detect_asf
 0x080ff3d8,medialib_detect_codec
 0x08104064,vorbis_parse_id_header
+0x081044a4,vorbis_get_info
 0x08104c28,audio_seek_time
 0x0810543c,upd_checksum_xor
 0x08105478,upd_unpack_headinfo

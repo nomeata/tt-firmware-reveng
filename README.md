@@ -39,6 +39,10 @@ This repository contains **our reverse-engineering work**, not the vendor firmwa
   functions across the variants (so a name recovered from one firmware's retained symbols can
   be carried to another), and [`firmware-differences.md`](firmware-differences.md) logs
   noteworthy differences in what the *pen* does between generations.
+* **[`maskrom-dumper/`](maskrom-dumper/README.md)** — a homebrew `.gme` program that runs on a real
+  pen and dumps its on-chip **boot mask ROM** (the keystone boot artifact *not* present in the `.upd`
+  firmware) to the USB drive via the firmware's `system_api` — no soldering or JTAG. Reference material
+  for recovering the mask ROM from your own hardware.
 
 It deliberately contains **no vendor firmware and nothing mechanically derived from it**
 (no firmware images, no decompiled C, no extracted string/byte dumps). The firmware is

@@ -1,0 +1,7 @@
+# Build artifacts for maskrom-dumper/ -- regenerate with ./build_dumper.sh; never commit.
+# (The repo root .gitignore already covers *.bin, __pycache__/ and *.pyc.)
+/build/
+*.gme
+
+# Generated cue sounds -- our own synthetic audio, regenerate with gen_sounds.py.
+/sounds/

@@ -1,6 +1,6 @@
 function	2N-update3202MT	ZC3201	2N-Update3202	evidence
 ConverHexToi	0x080ac1ec	0x0809760c	0x080a1bd0	string-match
-FatLib_GetVersion	-	0x080a4d10	-	string-authoritative(ZC:FatLib_V1.1.7)
+FatLib_GetVersion	0x080f0c28	0x080a4d10	-	string-authoritative+decomp-twin(version-string getter; MT returns FatLib_V1.2.1A)
 Fat_AllocFat	0x080a8ecc	0x080aa658	0x0809e988	string-authoritative(ZC:FSLib/FatLib assert)
 Fat_AllocFat_2	0x080f5268	-	0x080eac14	string-authoritative(ZC:FSLib/FatLib assert)
 Fat_FdtSetName	0x080f4dc0	0x080aa19c	0x080ea76c	string-authoritative(ZC:FSLib/FatLib assert)
@@ -11,7 +11,7 @@ File_Open	0x080f8f20	0x080a0e04	0x080ee8cc	string-authoritative(ZC:FSLib/FatLib 
 File_OpenId	0x080f8d98	0x080a0c74	0x080ee744	string-authoritative(ZC:FSLib/FatLib assert)
 File_WriteBlock	0x080fbe24	-	0x080f17d0	string-authoritative(ZC:FSLib/FatLib assert)
 Fname_ShortToLong	0x08108f48	0x080ae0e4	0x080fe894	string-authoritative(ZC:FSLib/FatLib assert)
-Fwl_FileRead	-	0x08043204	-	string-authoritative(ZC); 2N-MT self-update read UNNAMED -> upgrade candidate
+Fwl_FileRead	-	0x08043204	-	string-authoritative(ZC); NO CONFIDENT MT TWIN - ZC fn has no in-firmware caller/pointer (BL+byte-ptr scan empty), and its game-ctx offsets (+0xd8c/+0xd8e, +0x4b=0xb) don't exist in MT
 Utl_Atoi	0x08030558	0x0801c740	0x08027424	string-match
 Utl_Itoa	0x080304c0	0x0801c6a8	0x0802738c	string-match
 Utl_StrCat	0x080303e4	0x0801c5cc	0x080272b0	string-match
@@ -120,12 +120,12 @@ medialib_open	0x080f0e20	-	0x080e67cc	name-shared
 medialib_play	0x080f1c38	-	0x080e75e4	name-shared
 medialib_stop	0x080f1bbc	-	0x080e7568	name-shared
 medialib_version	0x080f0cb8	-	0x080e6664	name-shared
-mtd_CheckLogAddr	-	0x0802d540	-	string-authoritative(ZC:MtdLib-CheckLogAddr); upgrade candidate
-mtd_DealReadErr	-	0x0802de44	-	string-authoritative(ZC:MtdLib-DealReadErr); upgrade candidate
-mtd_MapTblInit	-	0x0802d318	-	string-authoritative(ZC:MtdLib-MapTblInit); 2N-MT nand_mtd cluster UNNAMED -> upgrade candidate
-mtd_MarkBadBlk	-	0x0802f674	-	string-authoritative(ZC:MtdLib-MarkBadBlk); upgrade candidate
-mtd_Replace	-	0x0802e330	-	string-authoritative(ZC:MtdLib-Replace); upgrade candidate
-mtd_Try2Write	-	0x0802e684	-	string-authoritative(ZC:MtdLib-Try2Write); upgrade candidate
+mtd_CheckLogAddr	-	0x0802d540	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; MT derives log2phy at init (nftl_build_log2phy@0x08047510), no stored-map checker
+mtd_DealReadErr	-	0x0802de44	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; absorbed into nftl_core_rw_sector@0x08043a74 copyback loop
+mtd_MapTblInit	-	0x0802d318	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; role-analog nand_mtd_2@0x08046be0 but different structure+own vendor string
+mtd_MarkBadBlk	-	0x0802f674	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; MT mark-bad FUN_08044754 self-IDs as NFTL_SetBadBlock (different fn)
+mtd_Replace	-	0x0802e330	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; role in MT is nftl_core_rw_sector main loop + nftl_page_copy, no standalone Replace
+mtd_Try2Write	-	0x0802e684	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; MT write path nftl_write_op@0x0801027c has no verify-and-replace wrapper
 mtd_free_block	0x080457b4	-	0x0803b158	name-shared
 mtd_init	0x08045e80	-	0x0803b7d4	name-shared
 mtd_reload	0x080466e8	-	0x0803c03c	name-shared
@@ -139,8 +139,8 @@ nftl_update_log2phy	0x08042c58	-	0x08038cb8	name-shared
 nftl_version_str	0x080fd3fc	-	0x080f2da8	name-shared
 rng_below	0x080ac5f8	0x08097914	0x080a1fdc	name-shared
 state_init_power_on(=app_init_main)	0x0802fe20	0x08030e48	0x0802fe20	string-authoritative(ZC:s_init_power_on.c)+call-structure
-state_stdb_standby(=standby_handler)	-	0x08036454	0x080475c8	string-authoritative(ZC:s_stdb_standby.c)
-sysapi_close	-	0x080096a8	0x080aaef8	decomp-twin
+state_stdb_standby(=standby_handler)	0x08051b0c	0x08036454	0x080475c8	string-authoritative(ZC:s_stdb_standby.c)+call-structure(MT standby_handler = standby state-machine, dispatches 0x100a/0x100c, USB-exit +0x58==5, idle-count>300 teardown; structural twin of ZC standby SM FUN_08036f7c in same file; row's ZC addr 0x08036454 is the small SetRefresh helper)
+sysapi_close	0x08014484	0x080096a8	0x080aaef8	call-structure+distinctive-field(+0x66c8 remaining-samples; two-branch finalize reads +0x1d0/+0x1ce/+0x182 set by sysapi_write)
 sysapi_free	0x08041ab4	-	0x08037bc8	decomp-twin
 sysapi_is_audio_playing	0x08013158	0x080a0a88	0x0800a024	decomp-twin
 sysapi_malloc	0x080419d8	-	0x08037aec	decomp-twin
@@ -148,11 +148,11 @@ sysapi_open	0x08016008	0x08008a48	0x0800ced4	decomp-twin
 sysapi_play_sound	0x080b37b4	0x0800c1c4	0x080a9198	decomp-twin
 sysapi_read	0x080160b0	-	0x0800cf7c	decomp-twin
 sysapi_seek	0x080160c0	-	0x0800cf8c	decomp-twin
-sysapi_write	-	0x08009498	0x080aaec8	decomp-twin
+sysapi_write	0x08010f78	0x08009498	0x080aaec8	call-structure+distinctive-const(0x3e000000/0x3f000000 floats, log2 loop, iVar*9 divide, +0x6980=ZC+27000 tail field)
 voice_play_sample(=play_media)	0x080ab7b4	0x08097068	0x080a1198	decomp-twin
 vorbis_assert_fail	0x081116b8	-	0x08106fc4	name-shared
 vorbis_book_decode	0x08110dd4	-	0x081066e0	name-shared
 vorbis_decode_packet	0x08111950	-	0x0810725c	name-shared
-vorbis_get_info	-	0x080b55f0	0x080f99fc	decomp-twin
+vorbis_get_info	0x081044a4	0x080b55f0	0x080f99fc	string-match+decomp-twin(same sig; "vorbis samplerate/bitrate/total_sample is %d", "first_page_pos" strings, OggS scan)
 vorbis_parse_comment(=meta_parse_vorbiscomment)	0x0810bc78	0x080b9fe8	-	decomp-twin+distinctive-constant
 vorbis_parse_id_header	0x08104064	-	0x080f99fc	name-shared
