@@ -2,7 +2,7 @@
   "variant": "ZC3201",
   "status": "work-in-progress",
   "description": "tiptoi 1st-gen pen (no recording/audiobook). Build v0136 / 120117 / ZC3201. ANYKANB0 NANDboot. Shares the architecture and the scripted-GME interpreter with the 2N; a useful cross-reference because it retained source-path and assert strings the 2N stripped.",
-  "loader_base": "0x08000000",
+  "loader_base": "0x08008000",
   "upd": {
     "filename": "update.upd",
     "urls": [
