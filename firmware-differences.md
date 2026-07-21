@@ -2,9 +2,9 @@
 
 User-visible / behavioral differences between the tiptoi pen firmware generations, backed by
 concrete evidence (addresses and retained strings). Each section cites the firmwares involved.
-Firmwares: **ZC3201** (first-gen, build v0136/120117, PROG @0x08000000) vs the flagship
-**2N-update3202MT** (PROG runtime base @0x08009000) and its sibling **2N-Update3202** (legacy
-base @0x08000000). Addresses are that build's own. Only evidence-backed differences are logged.
+Firmwares: **ZC3201** (first-gen, build v0136/120117, PROG runtime base @0x08008000) vs the
+flagship **2N-update3202MT** (PROG runtime base @0x08009000). Addresses are that build's own.
+Only evidence-backed differences are logged.
 
 ---
 
@@ -52,11 +52,10 @@ The 2N-update3202MT exposes a much larger, generically-parameterised engine bank
 `game*_record_load` @0x080773c8..0x0808b7ac). First-gen offers fewer, fixed game mechanics; the
 flagship offers many more game types selectable from the `.gme` data.
 
-## 4. Embedded GME ARM-binary launch path is present in BOTH generations (corrects prior note)
+## 4. Embedded GME ARM-binary launch path is present in BOTH generations
 
-An earlier lab note (fw/2N-Update3202/docs/CORRESPONDENCE.md §Divergences) stated ZC3201 shows
-"no equivalent" of the 2N's `system_api`-to-embedded-binary mechanism. The ZC3201 symbol harvest
-**revises this**: first-gen also carries the launcher and the `system_api` surface —
+The embedded-GME `system_api`-to-ARM-binary launch mechanism is not 2N-only: the ZC3201 symbol
+harvest shows first-gen **also** carries the launcher and the `system_api` surface —
 `gme_launch_binary_build_sysapi` @0x08095090, `gme_read_main_binary_table` @0x0809553c,
 `gme_binary_load_region` @0x08023324, and `sysapi_open/write/close/play_sound`
 (@0x08008a48/0x08009498/0x080096a8/0x0800c1c4), with a loader path string `B:/App_Demo.bin`

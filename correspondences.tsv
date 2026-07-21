@@ -1,158 +1,158 @@
-function	2N-update3202MT	ZC3201	2N-Update3202	evidence
-ConverHexToi	0x080ac1ec	0x0809f60c	0x080a1bd0	string-match
-FatLib_GetVersion	0x080f0c28	0x080acd10	-	string-authoritative+decomp-twin(version-string getter; MT returns FatLib_V1.2.1A)
-Fat_AllocFat	0x080a8ecc	0x080b2658	0x0809e988	string-authoritative(ZC:FSLib/FatLib assert)
-Fat_AllocFat_2	0x080f5268	-	0x080eac14	string-authoritative(ZC:FSLib/FatLib assert)
-Fat_FdtSetName	0x080f4dc0	0x080b219c	0x080ea76c	string-authoritative(ZC:FSLib/FatLib assert)
-File_CopyFile	0x080fc764	0x080ac704	0x080f2110	string-authoritative(ZC:FSLib/FatLib assert)
-File_Deltree	0x080fc268	0x080ac1ec	0x080f1c14	string-authoritative(ZC:FSLib/FatLib assert)
-File_Destroy	0x080f85d8	-	0x080edf84	string-authoritative(ZC:FSLib/FatLib assert)
-File_Open	0x080f8f20	0x080a8e04	0x080ee8cc	string-authoritative(ZC:FSLib/FatLib assert)
-File_OpenId	0x080f8d98	0x080a8c74	0x080ee744	string-authoritative(ZC:FSLib/FatLib assert)
-File_WriteBlock	0x080fbe24	-	0x080f17d0	string-authoritative(ZC:FSLib/FatLib assert)
-Fname_ShortToLong	0x08108f48	0x080b60e4	0x080fe894	string-authoritative(ZC:FSLib/FatLib assert)
-Fwl_FileRead	-	0x0804b204	-	string-authoritative(ZC); NO CONFIDENT MT TWIN - ZC fn has no in-firmware caller/pointer (BL+byte-ptr scan empty), and its game-ctx offsets (+0xd8c/+0xd8e, +0x4b=0xb) don't exist in MT
-Utl_Atoi	0x08030558	0x08024740	0x08027424	string-match
-Utl_Itoa	0x080304c0	0x080246a8	0x0802738c	string-match
-Utl_StrCat	0x080303e4	0x080245cc	0x080272b0	string-match
-Utl_StrCmp	0x080efc2c	-	0x080e55d8	string-match
-Utl_StrCmpC	0x0803021c	0x08024404	0x080270e8	string-match
-Utl_StrCmp_2	0x080efcbc	-	0x080e5668	string-match
-Utl_StrCpy	0x0803029c	0x08024484	0x08027168	string-match
-Utl_StrCpyN	0x08030324	0x0802450c	0x080271f0	string-match
-Utl_StrFndChr	0x080efad8	0x080a4f00	0x080e5484	string-match
-Utl_StrFndL	0x080ef910	0x080a4d38	0x080e52bc	string-match
-Utl_StrRevFndChr	0x080efb84	0x080a4fac	0x080e5530	string-match
-Utl_StrUpper	0x080efd50	0x080a5178	0x080e56fc	string-match
-Utl_UAtoi	0x080ac978	-	0x080a235c	string-match
-Utl_UStrCatChr	0x080acf9c	0x080a0288	0x080a2980	string-match
-Utl_UStrCmp	0x080ac8e0	0x0809fbec	0x080a22c4	string-match
-Utl_UStrCmpNC	0x080ad0b8	0x080a03a0	0x080a2a9c	string-match
-Utl_UStrFnd	0x080acc80	0x0809ff68	-	string-match
-Utl_UStrIns	0x080ac7b8	0x0809fac4	0x080a219c	string-match
-Utl_UStrRevFnd	0x080ace28	0x080a0114	0x080a280c	string-match
-Utl_UStrRevFndChr	0x080acba4	0x0809fe84	0x080a2588	string-match
-akoid_init	0x080eeb20	-	0x080e44cc	name-shared
-akoid_reg_read	0x080ef6a4	-	0x080e5050	name-shared
-akoid_reg_write	0x080ef684	-	0x080e5030	name-shared
-akoid_set_tempbyte1	0x0805083c	-	0x080462f8	name-shared
-ask_question	0x080956b4	-	0x0808b170	name-shared
-codepage_get_header	0x08030fb4	0x08025ce4	0x08027e78	string-match
-codepage_get_widechar	0x080310d0	0x08025dd8	0x08027f94	string-match
-codepage_load	0x08030e4c	-	0x08027d10	string-match
-discovery_mode	0x0809c5f8	0x0808ed04	0x080920b4	name-shared
-fs_attr_destroy	0x081083bc	-	0x080fdd08	decomp-twin
-fs_file_open_ascii	0x080f9b7c	-	0x080ef528	decomp-twin
-fs_file_open_wide	0x080f9bc8	-	0x080ef574	decomp-twin
-fs_get_driver_by_index	0x080f08f8	-	0x080e62a4	decomp-twin
-fs_list_add	0x080f81c4	-	0x080edb70	decomp-twin
-fs_list_destroy	0x080f8288	-	0x080edc34	decomp-twin
-fs_list_init	0x080f82c0	-	0x080edc6c	decomp-twin
-fs_list_iter_next	0x080f3e5c	-	0x080e9808	decomp-twin
-fs_list_iter_reset	0x080f3e4c	-	0x080e97f8	decomp-twin
-fs_mount_helper	0x08038484	-	0x0802f348	decomp-twin
-fs_obj_validate	0x080f83dc	-	0x080edd88	decomp-twin
-fs_object_free_array	0x080f8520	-	0x080edecc	decomp-twin
-fs_open	0x0800de20	0x0800c0ec	0x08004ed4	decomp-twin
-fs_partition_scan	0x08039a68	-	0x0803092c	decomp-twin
-fs_read	0x0800dec8	0x0800c1c4	0x08004f7c	decomp-twin
-fs_read_plain	0x0800e030	-	0x080050e4	decomp-twin
-fs_read_xor_decrypt	0x0800df70	-	0x08005024	decomp-twin
-fs_seek	0x0800ded8	0x0800c1d4	0x08004f8c	decomp-twin
-fs_storage_mount_init	0x0803a484	-	0x08031348	decomp-twin
-fs_string_alloc	0x080fcfb4	-	0x080f2960	decomp-twin
-fs_string_free	0x080fcf4c	-	0x080f28f8	decomp-twin
-fs_wstr_create_copy	0x080fd05c	-	0x080f2a08	decomp-twin
-game_action_handler_main	0x0805c2dc	-	0x08051d98	call-structure
-game_check_function_code	0x08095ddc	-	0x0808b898	call-structure
-game_ctx_init_flags	0x08069a20	0x0805c074	0x0805f4dc	call-structure
-game_findtarget_sm	0x08092f00	0x08085608	0x080889bc	call-structure
-game_load_header	0x08069a3c	-	0x0805f4f8	call-structure
-game_load_playlist_offsets	0x08074b7c	0x0805c090	0x0806a638	call-structure
-game_oid_dispatch	0x0806bad8	-	0x08061594	call-structure
-game_pick_voice	0x0806a0dc	-	0x0805fb98	call-structure
-game_play_oid_voice(=game_pick_voice)	0x0806a0dc	0x0805c730	0x0805fb98	string-authoritative(ZC:pMeGame->VoiceIndexForOID)+decomp-twin
-game_play_phase_cue	0x08069f0c	0x0805c560	0x0805f9c8	call-structure
-game_quiz_load_profmad_cand_maybe	0x0808d3c8	-	0x08082e84	call-structure
-game_quiz_lookup_question	0x0808d298	0x0807f9a0	0x08082d54	call-structure
-game_quiz_match_answer	0x0808d84c	0x0807ff54	0x08083308	call-structure
-game_quiz_match_answerset_maybe	0x0808d8ec	-	0x080833a8	call-structure
-game_quiz_play_cue	0x0808d6a0	0x0807fda8	0x0808315c	call-structure
-game_quiz_sm	0x0808d98c	0x08080094	0x08083448	call-structure
-game_random_id	0x0806f058	-	0x08064b14	call-structure
-game_reading_sm	0x0806a580	-	0x0806003c	call-structure
-game_spe1_init	0x08097ff8	-	0x0808dab4	call-structure
-game_start	0x0806ba54	0x0805e0a8	0x08061510	call-structure
-game_step_change_handler	0x08093298	-	0x08088d54	call-structure
-game_step_confirm_handler	0x080919dc	-	0x08087498	call-structure
-game_voice_pick_norepeat	0x0806a3c4	-	0x0805fe80	call-structure
-game_wronglimit_sm	0x0806f244	0x080618e8	0x08064d00	call-structure
-gme_alloc_binary_region	0x08038c5c	-	0x0802fb20	decomp-twin+distinctive-constant
-gme_check_condition	0x08035624	-	0x0802c4e8	decomp-twin+distinctive-constant
-gme_check_language	0x08033fb0	-	0x0802ae74	decomp-twin+distinctive-constant
-gme_clear_script_state	0x08035a6c	-	0x0802c930	decomp-twin+distinctive-constant
-gme_exec_command	0x08034da0	0x0804c6e4	0x0802bc64	decomp-twin+distinctive-constant
-gme_launch_binary_build_sysapi	0x080aa934	0x0809d090	0x080a03f0	decomp-twin+distinctive-constant
-gme_mount_check_product	0x08034130	-	0x0802aff4	decomp-twin+distinctive-constant
-gme_oid_dispatch	0x0803629c	-	0x0802d160	decomp-twin+distinctive-constant
-gme_oid_to_playscript	0x080359a4	0x0804d358	0x0802c868	decomp-twin+distinctive-constant
-gme_parse_actions	0x080354c8	0x0804cec8	0x0802c38c	decomp-twin+distinctive-constant
-gme_parse_additional_script	0x08036228	-	0x0802d0ec	decomp-twin+distinctive-constant
-gme_parse_check_conditions	0x08035888	0x0804d23c	0x0802c74c	decomp-twin+distinctive-constant
-gme_parse_header	0x08035d20	0x0804d72c	0x0802cbe4	decomp-twin+distinctive-constant
-gme_parse_media_offsets	0x08035338	0x0804cd38	0x0802c1fc	decomp-twin+distinctive-constant
-gme_parse_media_offsets2	0x08035b8c	0x0804d598	0x0802ca50	decomp-twin+distinctive-constant
-gme_parse_playlist	0x080353e8	0x0804cde8	0x0802c2ac	decomp-twin+distinctive-constant
-gme_parse_start_end_oid	0x08035c3c	-	0x0802cb00	decomp-twin+distinctive-constant
-gme_rand_in_range	0x08034d74	-	0x0802bc38	decomp-twin+distinctive-constant
-gme_read_main_binary_table	0x080aadd8	0x0809d53c	0x080a0894	decomp-twin+distinctive-constant
-gme_reset_registers	0x08035ca8	-	0x0802cb6c	decomp-twin+distinctive-constant
-media_detect_codec(=medialib_detect_codec)	0x080ff3d8	0x080b8970	-	decomp-twin+distinctive-constant(codec magics)
-medialib_close	0x080f0d38	-	0x080e66e4	name-shared
-medialib_detect_asf	0x080ff058	-	0x080f49f0	name-shared
-medialib_detect_codec	0x080ff3d8	-	0x080f4d70	name-shared
-medialib_detect_wav	0x080feebc	-	0x080f4854	name-shared
-medialib_enter_fr	0x080f1fe8	-	0x080e7994	name-shared
-medialib_fr_seek_helper	0x080f1b1c	-	0x080e74c8	name-shared
-medialib_get_info	0x080f19b0	-	0x080e735c	name-shared
-medialib_get_version(=medialib_version)	0x080f0cb8	0x080ad2d0	-	string-authoritative(ZC:MediaLib V0.6.3)+decomp-twin
-medialib_open	0x080f0e20	-	0x080e67cc	name-shared
-medialib_play	0x080f1c38	-	0x080e75e4	name-shared
-medialib_stop	0x080f1bbc	-	0x080e7568	name-shared
-medialib_version	0x080f0cb8	-	0x080e6664	name-shared
-mtd_CheckLogAddr	-	0x08035540	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; MT derives log2phy at init (nftl_build_log2phy@0x08047510), no stored-map checker
-mtd_DealReadErr	-	0x08035e44	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; absorbed into nftl_core_rw_sector@0x08043a74 copyback loop
-mtd_MapTblInit	-	0x08035318	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; role-analog nand_mtd_2@0x08046be0 but different structure+own vendor string
-mtd_MarkBadBlk	-	0x08037674	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; MT mark-bad FUN_08044754 self-IDs as NFTL_SetBadBlock (different fn)
-mtd_Replace	-	0x08036330	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; role in MT is nftl_core_rw_sector main loop + nftl_page_copy, no standalone Replace
-mtd_Try2Write	-	0x08036684	-	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; MT write path nftl_write_op@0x0801027c has no verify-and-replace wrapper
-mtd_free_block	0x080457b4	-	0x0803b158	name-shared
-mtd_init	0x08045e80	-	0x0803b7d4	name-shared
-mtd_reload	0x080466e8	-	0x0803c03c	name-shared
-nftl_check_anyka_ic	0x080fd414	-	0x080f2dc0	name-shared
-nftl_check_block_danger	0x08043780	-	0x080397cc	name-shared
-nftl_core_rw_sector	0x08043a74	-	0x08039ac0	name-shared
-nftl_init	0x08044d28	-	0x0803a6dc	name-shared
-nftl_init_2	0x080451a4	-	0x0803ab48	name-shared
-nftl_load_info	0x0804855c	-	0x0803deac	name-shared
-nftl_update_log2phy	0x08042c58	-	0x08038cb8	name-shared
-nftl_version_str	0x080fd3fc	-	0x080f2da8	name-shared
-rng_below	0x080ac5f8	0x0809f914	0x080a1fdc	name-shared
-state_init_power_on(=app_init_main)	0x0802fe20	0x08038e48	0x0802fe20	string-authoritative(ZC:s_init_power_on.c)+call-structure
-state_stdb_standby(=standby_handler)	0x08051b0c	0x0803e454	0x080475c8	string-authoritative(ZC:s_stdb_standby.c)+call-structure(MT standby_handler = standby state-machine, dispatches 0x100a/0x100c, USB-exit +0x58==5, idle-count>300 teardown; structural twin of ZC standby SM FUN_08036f7c in same file; row's ZC addr 0x08036454 is the small SetRefresh helper)
-sysapi_close	0x08014484	0x080116a8	0x080aaef8	call-structure+distinctive-field(+0x66c8 remaining-samples; two-branch finalize reads +0x1d0/+0x1ce/+0x182 set by sysapi_write)
-sysapi_free	0x08041ab4	-	0x08037bc8	decomp-twin
-sysapi_is_audio_playing	0x08013158	0x080a8a88	0x0800a024	decomp-twin
-sysapi_malloc	0x080419d8	-	0x08037aec	decomp-twin
-sysapi_open	0x08016008	0x08010a48	0x0800ced4	decomp-twin
-sysapi_play_sound	0x080b37b4	0x080141c4	0x080a9198	decomp-twin
-sysapi_read	0x080160b0	-	0x0800cf7c	decomp-twin
-sysapi_seek	0x080160c0	-	0x0800cf8c	decomp-twin
-sysapi_write	0x08010f78	0x08011498	0x080aaec8	call-structure+distinctive-const(0x3e000000/0x3f000000 floats, log2 loop, iVar*9 divide, +0x6980=ZC+27000 tail field)
-voice_play_sample(=play_media)	0x080ab7b4	0x0809f068	0x080a1198	decomp-twin
-vorbis_assert_fail	0x081116b8	-	0x08106fc4	name-shared
-vorbis_book_decode	0x08110dd4	-	0x081066e0	name-shared
-vorbis_decode_packet	0x08111950	-	0x0810725c	name-shared
-vorbis_get_info	0x081044a4	0x080bd5f0	0x080f99fc	string-match+decomp-twin(same sig; "vorbis samplerate/bitrate/total_sample is %d", "first_page_pos" strings, OggS scan)
-vorbis_parse_comment(=meta_parse_vorbiscomment)	0x0810bc78	0x080c1fe8	-	decomp-twin+distinctive-constant
-vorbis_parse_id_header	0x08104064	-	0x080f99fc	name-shared
+function	2N-update3202MT	ZC3201	evidence
+ConverHexToi	0x080ac1ec	0x0809f60c	string-match
+FatLib_GetVersion	0x080f0c28	0x080acd10	string-authoritative+decomp-twin(version-string getter; MT returns FatLib_V1.2.1A)
+Fat_AllocFat	0x080a8ecc	0x080b2658	string-authoritative(ZC:FSLib/FatLib assert)
+Fat_AllocFat_2	0x080f5268	-	string-authoritative(ZC:FSLib/FatLib assert)
+Fat_FdtSetName	0x080f4dc0	0x080b219c	string-authoritative(ZC:FSLib/FatLib assert)
+File_CopyFile	0x080fc764	0x080ac704	string-authoritative(ZC:FSLib/FatLib assert)
+File_Deltree	0x080fc268	0x080ac1ec	string-authoritative(ZC:FSLib/FatLib assert)
+File_Destroy	0x080f85d8	-	string-authoritative(ZC:FSLib/FatLib assert)
+File_Open	0x080f8f20	0x080a8e04	string-authoritative(ZC:FSLib/FatLib assert)
+File_OpenId	0x080f8d98	0x080a8c74	string-authoritative(ZC:FSLib/FatLib assert)
+File_WriteBlock	0x080fbe24	-	string-authoritative(ZC:FSLib/FatLib assert)
+Fname_ShortToLong	0x08108f48	0x080b60e4	string-authoritative(ZC:FSLib/FatLib assert)
+Fwl_FileRead	-	0x0804b204	string-authoritative(ZC); NO CONFIDENT MT TWIN - ZC fn has no in-firmware caller/pointer (BL+byte-ptr scan empty), and its game-ctx offsets (+0xd8c/+0xd8e, +0x4b=0xb) don't exist in MT
+Utl_Atoi	0x08030558	0x08024740	string-match
+Utl_Itoa	0x080304c0	0x080246a8	string-match
+Utl_StrCat	0x080303e4	0x080245cc	string-match
+Utl_StrCmp	0x080efc2c	-	string-match
+Utl_StrCmpC	0x0803021c	0x08024404	string-match
+Utl_StrCmp_2	0x080efcbc	-	string-match
+Utl_StrCpy	0x0803029c	0x08024484	string-match
+Utl_StrCpyN	0x08030324	0x0802450c	string-match
+Utl_StrFndChr	0x080efad8	0x080a4f00	string-match
+Utl_StrFndL	0x080ef910	0x080a4d38	string-match
+Utl_StrRevFndChr	0x080efb84	0x080a4fac	string-match
+Utl_StrUpper	0x080efd50	0x080a5178	string-match
+Utl_UAtoi	0x080ac978	-	string-match
+Utl_UStrCatChr	0x080acf9c	0x080a0288	string-match
+Utl_UStrCmp	0x080ac8e0	0x0809fbec	string-match
+Utl_UStrCmpNC	0x080ad0b8	0x080a03a0	string-match
+Utl_UStrFnd	0x080acc80	0x0809ff68	string-match
+Utl_UStrIns	0x080ac7b8	0x0809fac4	string-match
+Utl_UStrRevFnd	0x080ace28	0x080a0114	string-match
+Utl_UStrRevFndChr	0x080acba4	0x0809fe84	string-match
+akoid_init	0x080eeb20	-	name-shared
+akoid_reg_read	0x080ef6a4	-	name-shared
+akoid_reg_write	0x080ef684	-	name-shared
+akoid_set_tempbyte1	0x0805083c	-	name-shared
+ask_question	0x080956b4	-	name-shared
+codepage_get_header	0x08030fb4	0x08025ce4	string-match
+codepage_get_widechar	0x080310d0	0x08025dd8	string-match
+codepage_load	0x08030e4c	-	string-match
+discovery_mode	0x0809c5f8	0x0808ed04	name-shared
+fs_attr_destroy	0x081083bc	-	decomp-twin
+fs_file_open_ascii	0x080f9b7c	-	decomp-twin
+fs_file_open_wide	0x080f9bc8	-	decomp-twin
+fs_get_driver_by_index	0x080f08f8	-	decomp-twin
+fs_list_add	0x080f81c4	-	decomp-twin
+fs_list_destroy	0x080f8288	-	decomp-twin
+fs_list_init	0x080f82c0	-	decomp-twin
+fs_list_iter_next	0x080f3e5c	-	decomp-twin
+fs_list_iter_reset	0x080f3e4c	-	decomp-twin
+fs_mount_helper	0x08038484	-	decomp-twin
+fs_obj_validate	0x080f83dc	-	decomp-twin
+fs_object_free_array	0x080f8520	-	decomp-twin
+fs_open	0x0800de20	0x0800c0ec	decomp-twin
+fs_partition_scan	0x08039a68	-	decomp-twin
+fs_read	0x0800dec8	0x0800c1c4	decomp-twin
+fs_read_plain	0x0800e030	-	decomp-twin
+fs_read_xor_decrypt	0x0800df70	-	decomp-twin
+fs_seek	0x0800ded8	0x0800c1d4	decomp-twin
+fs_storage_mount_init	0x0803a484	-	decomp-twin
+fs_string_alloc	0x080fcfb4	-	decomp-twin
+fs_string_free	0x080fcf4c	-	decomp-twin
+fs_wstr_create_copy	0x080fd05c	-	decomp-twin
+game_action_handler_main	0x0805c2dc	-	call-structure
+game_check_function_code	0x08095ddc	-	call-structure
+game_ctx_init_flags	0x08069a20	0x0805c074	call-structure
+game_findtarget_sm	0x08092f00	0x08085608	call-structure
+game_load_header	0x08069a3c	-	call-structure
+game_load_playlist_offsets	0x08074b7c	0x0805c090	call-structure
+game_oid_dispatch	0x0806bad8	-	call-structure
+game_pick_voice	0x0806a0dc	-	call-structure
+game_play_oid_voice(=game_pick_voice)	0x0806a0dc	0x0805c730	string-authoritative(ZC:pMeGame->VoiceIndexForOID)+decomp-twin
+game_play_phase_cue	0x08069f0c	0x0805c560	call-structure
+game_quiz_load_profmad_cand_maybe	0x0808d3c8	-	call-structure
+game_quiz_lookup_question	0x0808d298	0x0807f9a0	call-structure
+game_quiz_match_answer	0x0808d84c	0x0807ff54	call-structure
+game_quiz_match_answerset_maybe	0x0808d8ec	-	call-structure
+game_quiz_play_cue	0x0808d6a0	0x0807fda8	call-structure
+game_quiz_sm	0x0808d98c	0x08080094	call-structure
+game_random_id	0x0806f058	-	call-structure
+game_reading_sm	0x0806a580	-	call-structure
+game_spe1_init	0x08097ff8	-	call-structure
+game_start	0x0806ba54	0x0805e0a8	call-structure
+game_step_change_handler	0x08093298	-	call-structure
+game_step_confirm_handler	0x080919dc	-	call-structure
+game_voice_pick_norepeat	0x0806a3c4	-	call-structure
+game_wronglimit_sm	0x0806f244	0x080618e8	call-structure
+gme_alloc_binary_region	0x08038c5c	-	decomp-twin+distinctive-constant
+gme_check_condition	0x08035624	-	decomp-twin+distinctive-constant
+gme_check_language	0x08033fb0	-	decomp-twin+distinctive-constant
+gme_clear_script_state	0x08035a6c	-	decomp-twin+distinctive-constant
+gme_exec_command	0x08034da0	0x0804c6e4	decomp-twin+distinctive-constant
+gme_launch_binary_build_sysapi	0x080aa934	0x0809d090	decomp-twin+distinctive-constant
+gme_mount_check_product	0x08034130	-	decomp-twin+distinctive-constant
+gme_oid_dispatch	0x0803629c	-	decomp-twin+distinctive-constant
+gme_oid_to_playscript	0x080359a4	0x0804d358	decomp-twin+distinctive-constant
+gme_parse_actions	0x080354c8	0x0804cec8	decomp-twin+distinctive-constant
+gme_parse_additional_script	0x08036228	-	decomp-twin+distinctive-constant
+gme_parse_check_conditions	0x08035888	0x0804d23c	decomp-twin+distinctive-constant
+gme_parse_header	0x08035d20	0x0804d72c	decomp-twin+distinctive-constant
+gme_parse_media_offsets	0x08035338	0x0804cd38	decomp-twin+distinctive-constant
+gme_parse_media_offsets2	0x08035b8c	0x0804d598	decomp-twin+distinctive-constant
+gme_parse_playlist	0x080353e8	0x0804cde8	decomp-twin+distinctive-constant
+gme_parse_start_end_oid	0x08035c3c	-	decomp-twin+distinctive-constant
+gme_rand_in_range	0x08034d74	-	decomp-twin+distinctive-constant
+gme_read_main_binary_table	0x080aadd8	0x0809d53c	decomp-twin+distinctive-constant
+gme_reset_registers	0x08035ca8	-	decomp-twin+distinctive-constant
+media_detect_codec(=medialib_detect_codec)	0x080ff3d8	0x080b8970	decomp-twin+distinctive-constant(codec magics)
+medialib_close	0x080f0d38	-	name-shared
+medialib_detect_asf	0x080ff058	-	name-shared
+medialib_detect_codec	0x080ff3d8	-	name-shared
+medialib_detect_wav	0x080feebc	-	name-shared
+medialib_enter_fr	0x080f1fe8	-	name-shared
+medialib_fr_seek_helper	0x080f1b1c	-	name-shared
+medialib_get_info	0x080f19b0	-	name-shared
+medialib_get_version(=medialib_version)	0x080f0cb8	0x080ad2d0	string-authoritative(ZC:MediaLib V0.6.3)+decomp-twin
+medialib_open	0x080f0e20	-	name-shared
+medialib_play	0x080f1c38	-	name-shared
+medialib_stop	0x080f1bbc	-	name-shared
+medialib_version	0x080f0cb8	-	name-shared
+mtd_CheckLogAddr	-	0x08035540	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; MT derives log2phy at init (nftl_build_log2phy@0x08047510), no stored-map checker
+mtd_DealReadErr	-	0x08035e44	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; absorbed into nftl_core_rw_sector@0x08043a74 copyback loop
+mtd_MapTblInit	-	0x08035318	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; role-analog nand_mtd_2@0x08046be0 but different structure+own vendor string
+mtd_MarkBadBlk	-	0x08037674	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; MT mark-bad FUN_08044754 self-IDs as NFTL_SetBadBlock (different fn)
+mtd_Replace	-	0x08036330	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; role in MT is nftl_core_rw_sector main loop + nftl_page_copy, no standalone Replace
+mtd_Try2Write	-	0x08036684	NO CONFIDENT MT TWIN - ZC=MtdLib_Base_1_0_10 vs MT=NFTL_V1_2_11 redesign (log2phy+RLE); ZC 0x12560000 OOB magic & 0xfffa/fc/ff flags absent in MT; MT write path nftl_write_op@0x0801027c has no verify-and-replace wrapper
+mtd_free_block	0x080457b4	-	name-shared
+mtd_init	0x08045e80	-	name-shared
+mtd_reload	0x080466e8	-	name-shared
+nftl_check_anyka_ic	0x080fd414	-	name-shared
+nftl_check_block_danger	0x08043780	-	name-shared
+nftl_core_rw_sector	0x08043a74	-	name-shared
+nftl_init	0x08044d28	-	name-shared
+nftl_init_2	0x080451a4	-	name-shared
+nftl_load_info	0x0804855c	-	name-shared
+nftl_update_log2phy	0x08042c58	-	name-shared
+nftl_version_str	0x080fd3fc	-	name-shared
+rng_below	0x080ac5f8	0x0809f914	name-shared
+state_init_power_on(=app_init_main)	0x0802fe20	0x08038e48	string-authoritative(ZC:s_init_power_on.c)+call-structure
+state_stdb_standby(=standby_handler)	0x08051b0c	0x0803e454	string-authoritative(ZC:s_stdb_standby.c)+call-structure(MT standby_handler = standby state-machine, dispatches 0x100a/0x100c, USB-exit +0x58==5, idle-count>300 teardown; structural twin of ZC standby SM FUN_08036f7c in same file; row's ZC addr 0x08036454 is the small SetRefresh helper)
+sysapi_close	0x08014484	0x080116a8	call-structure+distinctive-field(+0x66c8 remaining-samples; two-branch finalize reads +0x1d0/+0x1ce/+0x182 set by sysapi_write)
+sysapi_free	0x08041ab4	-	decomp-twin
+sysapi_is_audio_playing	0x08013158	0x080a8a88	decomp-twin
+sysapi_malloc	0x080419d8	-	decomp-twin
+sysapi_open	0x08016008	0x08010a48	decomp-twin
+sysapi_play_sound	0x080b37b4	0x080141c4	decomp-twin
+sysapi_read	0x080160b0	-	decomp-twin
+sysapi_seek	0x080160c0	-	decomp-twin
+sysapi_write	0x08010f78	0x08011498	call-structure+distinctive-const(0x3e000000/0x3f000000 floats, log2 loop, iVar*9 divide, +0x6980=ZC+27000 tail field)
+voice_play_sample(=play_media)	0x080ab7b4	0x0809f068	decomp-twin
+vorbis_assert_fail	0x081116b8	-	name-shared
+vorbis_book_decode	0x08110dd4	-	name-shared
+vorbis_decode_packet	0x08111950	-	name-shared
+vorbis_get_info	0x081044a4	0x080bd5f0	string-match+decomp-twin(same sig; "vorbis samplerate/bitrate/total_sample is %d", "first_page_pos" strings, OggS scan)
+vorbis_parse_comment(=meta_parse_vorbiscomment)	0x0810bc78	0x080c1fe8	decomp-twin+distinctive-constant
+vorbis_parse_id_header	0x08104064	-	name-shared

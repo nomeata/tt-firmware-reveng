@@ -83,9 +83,7 @@ Each analyzed firmware is a self-contained directory at the repository root, sha
 | variant | pen | status |
 |---------|-----|--------|
 | **`2N-update3202MT`** | 2nd gen, ZC3202N (Micron NAND), build 20131009 | **flagship** — fully analyzed; matches a real pen |
-| `2N-Update3202` | 2nd gen, ZC3202N, earlier build 20120419 | work in progress |
-| `ZC3201` | 1st gen (no recording) | work in progress — regenerable; ~220 named. Its retained vendor symbol strings make it the authoritative-name source that feeds the others |
-| `3L-Update3203L` | 3rd gen, ZC3203L (audio player) | stub |
+| `ZC3201` | 1st gen (no recording) | work in progress — regenerable; ~220 named. Its retained vendor symbol strings make it the authoritative-name source that feeds the flagship |
 
 Each `<variant>/` holds:
 
