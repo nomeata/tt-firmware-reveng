@@ -23,7 +23,6 @@
 0x080119c4,printf
 0x08010f78,sysapi_write
 0x08014484,sysapi_close
-0x08013158,sysapi_is_audio_playing
 0x08016008,sysapi_open
 0x080160b0,sysapi_read
 0x080160c0,sysapi_seek

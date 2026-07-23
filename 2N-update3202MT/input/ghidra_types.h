@@ -230,7 +230,6 @@ unsigned int codepage_get_header(int codepage_sel);
 /* 0x0800df8c fs_seek(handle,off,whence): VFS seek (entry point). */
 /* 0x0800e024 fs_read_xor_decrypt: read file bytes then XOR-decrypt media with the active key (bytes 0x00/0xFF/key/key^0xFF pass through). */
 /* 0x0800e0e4 fs_read_plain: read file bytes with no decryption. */
-/* 0x08013024 sysapi_is_audio_playing: system_api wrapper (exposed to embedded GME binaries) around is_audio_playing. */
 /* 0x080b2198 sysapi_play_sound: system_api wrapper to play a sound, exposed to embedded GME binaries. */
 /* 0x08033e74 gme_check_language: compare the GME's language string against the pen's configured language; reject on mismatch. */
 /* 0x08033ff4 gme_mount_check_product: check a GME file's product id / mount it as the active product. */
