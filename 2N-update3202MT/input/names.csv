@@ -23,9 +23,6 @@
 0x080119c4,printf
 0x08010f78,sysapi_write
 0x08014484,sysapi_close
-0x08016008,sysapi_open
-0x080160b0,sysapi_read
-0x080160c0,sysapi_seek
 0x08030030,str_lib_fn
 0x0803021c,Utl_StrCmpC
 0x0803029c,Utl_StrCpy
@@ -94,7 +91,6 @@
 0x08040df8,usb_set_address
 0x080414e4,usb_bus_reset
 0x080419d8,sysapi_malloc
-0x08041aa8,sysapi_malloc
 0x08041ab4,sysapi_free
 0x08042c58,nftl_update_log2phy
 0x08042d34,nand_EraseBlk
@@ -203,7 +199,6 @@
 0x080ac8e0,Utl_UStrCmp
 0x080ac978,Utl_UAtoi
 0x080acd50,ustr_lib_fn_3
-0x080b37b4,sysapi_play_sound
 0x080ee04c,read_serial_bytes
 0x080ee200,serial_is_valid
 0x080ee6a0,str_compare

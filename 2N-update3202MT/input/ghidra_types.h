@@ -230,7 +230,6 @@ unsigned int codepage_get_header(int codepage_sel);
 /* 0x0800df8c fs_seek(handle,off,whence): VFS seek (entry point). */
 /* 0x0800e024 fs_read_xor_decrypt: read file bytes then XOR-decrypt media with the active key (bytes 0x00/0xFF/key/key^0xFF pass through). */
 /* 0x0800e0e4 fs_read_plain: read file bytes with no decryption. */
-/* 0x080b2198 sysapi_play_sound: system_api wrapper to play a sound, exposed to embedded GME binaries. */
 /* 0x08033e74 gme_check_language: compare the GME's language string against the pen's configured language; reject on mismatch. */
 /* 0x08033ff4 gme_mount_check_product: check a GME file's product id / mount it as the active product. */
 /* 0x08034c38 gme_rand_in_range(lo,hi): PRNG helper returning a value in [lo,hi], used by the random-play commands (FC00/FFE0). */
@@ -315,7 +314,6 @@ int codepage_get_header(int codepage_sel);
  * header that detect_codec recognises AND map to a supported codec id; otherwise medialib_open
  * hits the "Unsupported" branch, set_source returns 0, and aud_player_play is silent (no error
  * is surfaced to the caller). */
-/* 0x080b2198 sysapi_play_sound: system_api field +0x2c wrapper -> play_media. Args (filehandle, offset, size). */
 /* 0x080fdd70 medialib_detect_codec: read first 0x40 bytes of the (decrypted) stream and sniff the
  *   codec id: WAV/AVI/ANKA via medialib_detect_wav, ASF/WMA via medialib_detect_asf, "#!AMR"->0x0d,
  *   OggS+0x7f"FLAC"->0x12(Ogg-FLAC), "fLaC"->0x11(FLAC), OggS+"vorbis"->0x14(Vorbis), plus mp3/id3
